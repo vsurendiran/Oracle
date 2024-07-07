@@ -1,0 +1,25 @@
+Meta Character
+==============
+
+.,*,+,[],(),|,\,?,^,$,{}
+
+. => Anything
++ => One or More
+? => Zeor or more
+| => Either or
+() => Group
+\ => Escape
+^ => start
+$ => stop
+
+[a-z]
+[a-zA-Z]
+[a-zA-Z0-9]
+
+\w => [a-zA-Z0-9]
+\W => [^a-zA-Z0-9]
+\d => [0-9]
+\D => [^0-9]
+\a => space, \n, tab
+\S => 
+
