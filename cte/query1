@@ -1,0 +1,11 @@
+with 
+ function empname(v_empno in number)
+ return varchar2 is
+ v_empname varchar2;
+ begin
+  select ename into v_empname 
+    from emp where empno = v_empno;
+  return v_empname;
+  when no 
+ end;
+ select empno,empname(empno) name from emp;
