@@ -23,6 +23,13 @@ loop
 end loop;
 end;
 
+begin
+for i  in reverse 1.. 10  ---- Reverse function in 19c
+loop
+ dbms_output.put_line(i);
+end loop;
+end;
+
 DECLARE
   CURSOR emp_cur IS SELECT * FROM emp;
 BEGIN
