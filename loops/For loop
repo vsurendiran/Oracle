@@ -1,21 +1,8 @@
 set serveroutput on;
 
 DECLARE
-  CURSOR emp_cur IS
-    SELECT * FROM emp;
-BEGIN
-  FOR a IN emp_cur
-  LOOP
-    dbms_output.put_line('Empid:'|| a.empno ||'   '||' Salary: ' || a.sal);
-  END LOOP;
-END;
-/
-
-
-DECLARE
-  CURSOR emp_cur IS
-    SELECT * FROM emp;
-  emp_rec emp%ROWTYPE;
+  CURSOR emp_cur IS SELECT * FROM emp;
+    emp_rec emp%ROWTYPE;
 BEGIN
   OPEN emp_cur;
   LOOP
@@ -25,3 +12,23 @@ BEGIN
   END LOOP;
   CLOSE emp_cur;
 END;
+
+DECLARE
+start_num number := 2;
+end_num number := 20;
+begin
+for i in start_num .. end_num
+loop
+    dbms_output.put_line(i);
+end loop;
+end;
+
+DECLARE
+  CURSOR emp_cur IS SELECT * FROM emp;
+BEGIN
+  FOR a IN emp_cur
+  LOOP
+    dbms_output.put_line('Empid:'|| a.empno ||'   '||' Salary: ' || a.sal);
+  END LOOP;
+END;
+/
