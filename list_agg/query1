@@ -1,0 +1,7 @@
+ select deptno, listagg(ename,',') within group (order by ename)  from emp group by deptno;
+ 
+select d.deptno,empno,ename,sal,
+  sum(sal) over (partition by e.deptno order by d.deptno,sal)  as sal_sum 
+from dept d
+left join emp e
+on d.deptno = e.deptno 
