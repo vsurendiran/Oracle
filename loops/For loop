@@ -1,0 +1,27 @@
+set serveroutput on;
+
+DECLARE
+  CURSOR emp_cur IS
+    SELECT * FROM emp;
+BEGIN
+  FOR a IN emp_cur
+  LOOP
+    dbms_output.put_line('Empid:'|| a.empno ||'   '||' Salary: ' || a.sal);
+  END LOOP;
+END;
+/
+
+
+DECLARE
+  CURSOR emp_cur IS
+    SELECT * FROM emp;
+  emp_rec emp%ROWTYPE;
+BEGIN
+  OPEN emp_cur;
+  LOOP
+    FETCH emp_cur INTO emp_rec;
+    EXIT WHEN emp_cur%NOTFOUND;
+    dbms_output.put_line('Empid:' || emp_rec.empno || '   ' || ' Salary: ' || emp_rec.sal);
+  END LOOP;
+  CLOSE emp_cur;
+END;
