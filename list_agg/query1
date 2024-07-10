@@ -1,5 +1,10 @@
- select deptno, listagg(ename,',') within group (order by ename)  from emp group by deptno;
- 
+select deptno, listagg(ename,',') within group (order by ename)  from emp group by deptno;
+--- No need to use " within group (order by ename) " in 18c onwards
+select deptno, listagg(ename,',')  from emp group by deptno;
+--- We can use distinct in 19c
+select deptno, listagg(distinct job,',') from emp group by deptno;
+
+
 select d.deptno,empno,ename,sal,
   sum(sal) over (partition by e.deptno order by d.deptno,sal)  as sal_sum 
 from dept d
