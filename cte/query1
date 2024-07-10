@@ -1,3 +1,12 @@
+with average_salary (deptno, avg_sal) as
+(select deptno, round(avg(sal),-1) 
+   from emp group by deptno)
+select * from emp inner join average_salary
+on average_salary.deptno = emp.deptno
+where emp.sal > average_salary.avg_sal;
+
+
+
 with 
  function empname(v_empno in number)
  return varchar2 is
