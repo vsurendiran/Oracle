@@ -1,0 +1,2 @@
+SYSDATE: Returns the current date and time of the database server.
+CURRENT_DATE: Returns the current date and time in the session's time zone.
