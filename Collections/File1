@@ -1,0 +1,46 @@
+Collection Types        |  Number of elements      | Index Type             |  Dense or Sparse
+-----------------------------------------------------------------------------------------------
+1. Associative Array    | unspecified              | String or PLS_INTEGER  |  Either
+2. VARRAY(variable sze) | Specified                | Integer                |  Always Dense
+3. Nested Table         | Unspecified              | Integer                |  Starts dense can become sparse
+-----------------------------------------------------------------------------------------------
+Dense or Sparse
+
+A dense collection has no gaps between elements — every element between the first and last element is defined and has a value  
+                                                  (the value can be NULL unless the element has a NOT NULL constraint). 
+A sparse collection has gaps between elements.
+
+-----------------------------------------------------------------
+Non-PL/SQL Composite Type    |	Equivalent PL/SQL Composite Type
+-----------------------------------------------------------------
+Hash table                   |  Associative array
+Unordered table              |  Associative array
+Set                          |  Nested table
+Bag                          |  Nested table
+Array                        |  VARRAY
+-----------------------------------------------------------------
+
+DECLARE
+  -- Associative array indexed by string: (formerly called PL/SQL table or index-by table) )
+  DECLARE
+  TYPE population IS TABLE OF NUMBER  -- Associative array type
+    INDEX BY VARCHAR2(64);            --  indexed by string  (if PLS_INTEGER - Integer)
+    city_population  population;        -- Associative array variable
+  i  VARCHAR2(64);                    -- Scalar variable
+  BEGIN
+  -- Add elements (key-value pairs) to associative array:
+   city_population('Smallville')  := 2000;
+  city_population('Midland')     := 750000;
+  city_population('Megalopolis') := 1000000;
+   -- Change value associated with key 'Smallville':
+   city_population('Smallville') := 2001;
+   -- Print associative array:
+   i := city_population.FIRST;  -- Get first element of array
+   WHILE i IS NOT NULL LOOP
+    DBMS_Output.PUT_LINE
+      ('Population of ' || i || ' is ' || city_population(i));
+    i := city_population.NEXT(i);  -- Get next element of array
+  END LOOP;
+END;
+/
+Collection Methods : FIRST, LAST, NEXT, and PRIOR
