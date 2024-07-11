@@ -1,12 +1,28 @@
 select deptno, listagg(ename,',') within group (order by ename)  from emp group by deptno;
+--- In 11g maximum number of character is 4000. If it is more it will throw error result of concatenation is too long
+
+--- In 12C we have listagg_overflow_clause to display the count of truncated value
+select length(listagg(ename,',' on overflow truncate 'Some more name exists' without count) within group (order by ename))
+from emp ;
+
+
 --- No need to use " within group (order by ename) " in 18c onwards
 select deptno, listagg(ename,',')  from emp group by deptno;
 --- We can use distinct in 19c
 select deptno, listagg(distinct job,',') from emp group by deptno;
 
-
+-- running sum value
+=======================
 select d.deptno,empno,ename,sal,
-  sum(sal) over (partition by e.deptno order by d.deptno,sal)  as sal_sum 
+  sum(sal) over ( order by d.deptno,sal)  as sal_sum ,
+  lead(sal,2,0) over(order by d.deptno,sal) as lead_sal,
+  lag(sal,2,0) over(order by d.deptno,sal) as lag_sal,
+  row_number() over(order by d.deptno,sal) as row_number,
+  first_value(sal) over (partition by d.deptno order by d.deptno,sal desc) as max_sal,
+  first_value(sal) over (partition by d.deptno order by d.deptno,sal ASC
+  --rows between unbounded preceding and current row
+  ) as min_sal
 from dept d
 left join emp e
 on d.deptno = e.deptno 
+
