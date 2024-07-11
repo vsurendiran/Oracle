@@ -1,3 +1,5 @@
+Scalar data types are : Number, char, varchar2
+---------------------------------------------------------------------------------------------
 Collection Types        |  Number of elements      | Index Type             |  Dense or Sparse
 -----------------------------------------------------------------------------------------------
 1. Associative Array    | unspecified              | String or PLS_INTEGER  |  Either
