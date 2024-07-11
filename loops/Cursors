@@ -1,0 +1,53 @@
+Cursor 
+=======
+A Cursor is a pointer to this context area. Oracle creates context area for processing an SQL statement which contains
+all information about the statement. PL/SQL allows the programmer to control the context area through the cursor. 
+A cursor holds the rows returned by the SQL statement. The set of rows the cursor holds is referred as active set.
+
+Implicit cursor - Default (All DML statements uses)
+Explicit cursor - User defined cursor
+
+DECLARE
+CURSOR <cursor_name> IS <SELECT statement^>
+<cursor_variable declaration>
+BEGIN
+OPEN <cursor_name>;
+FETCH <cursor_name> INTO <cursor_variable>;
+.
+.
+CLOSE <cursor_name>;
+END;
+
+Cursor Attribute	Description
+%FOUND	          It returns the Boolean result ‘TRUE’ if the most recent fetch operation fetched a record successfully, 
+                  else it will return FALSE.
+%NOTFOUND	        This works oppositely to %FOUND it will return ‘TRUE’ if the most recent fetch operation could not able to 
+                  fetch any record.
+%ISOPEN	          It returns Boolean result ‘TRUE’ if the given cursor is already opened, else it returns ‘FALSE’
+%ROWCOUNT	        It returns the numerical value. It gives the actual count of records that got affected by the DML activity.
+
+Exceptions:
+-----------
+An exception is an error which disrupts the normal flow of program instructions. PL/SQL provides us the exception block 
+which raises the exception thus helping the programmer to find out the fault and resolve it. There are two types of exceptions 
+defined in PL/SQL  
+1. System defined Exception
+2. User defined Exception
+
+Example:
+========
+CREATE PROCEDURE account_status (
+  due_date DATE,
+  today    DATE
+) AUTHID DEFINER
+IS
+  past_due  EXCEPTION;  -- declare exception
+BEGIN
+  IF due_date < today THEN
+    RAISE past_due;  -- explicitly raise exception
+  END IF;
+EXCEPTION
+  WHEN past_due THEN  -- handle exception
+    DBMS_OUTPUT.PUT_LINE ('Account past due.');
+END;
+/
