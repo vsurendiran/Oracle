@@ -12,6 +12,32 @@ BEGIN
   END LOOP;
   CLOSE emp_cur;
 END;
+============================================================================
+create table emp_backup as select * from emp where 1 = 2;
+
+DECLARE
+      cursor a_cur is select * from emp;
+      emp_rec  emp%rowtype;  --( or we can write emp_rec  a_cur%rowtype;)
+begin
+open a_cur;
+    loop
+        fetch a_cur into emp_rec;
+        exit when a_cur%notfound;
+            insert into emp_backup values emp_rec;
+    end loop;
+end;
+--select * from emp_backup ;
+=====================================================================
+DECLARE
+emp_rec  emp%rowtype;
+begin
+select * --empno,ename,job,mgr,hiredate,sal,comm,deptno
+  into emp_rec 
+  from emp where empno = 7369;
+insert into emp_backup values emp_rec;
+end;
+====================================================================
+
 
 DECLARE
 start_num number := 2;
