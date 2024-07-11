@@ -65,3 +65,53 @@ BEGIN
   END LOOP;
 END;
 /
+-- For loop Reverse print 
+begin
+for i in reverse 1 .. 10
+loop
+ dbms_output.put_line(i);
+end loop;
+end;
+
+FOR loop (21C)
+========
+1. Stepped range iteration control
+2. Fractional Range Iteration
+3. Single expression iteration control
+4. Multiple iterations control
+
+
+1. Stepped range iteration control
+----------------------------------
+BEGIN
+ For i IN 1..10 BY 2 LOOP  --- Increment value
+     dbms_output.put_line(i);
+ END LOOP;
+
+2. Fractional Range Iteration
+-----------------------------
+BEGIN
+ For i (number(5,2) IN 1.6 ..10.6 BY 0.2 LOOP  --- Fractional Increment value
+     dbms_output.put_line(i);
+ END LOOP;
+
+3. Single expression iteration control
+--------------------------------------
+BEGIN
+ For i IN 10  LOOP  --- Single Expression value
+     dbms_output.put_line(i);
+ END LOOP;
+
+4. Multiple iterations control
+------------------------------
+BEGIN
+ For i Number(5,2) IN 1 .. 10 BY 2, 
+                      1.5 .. 5.5 BY 2 ,
+                      1.5 .. 5.5 BY 1.2, 
+                      100, 
+                      Reverse 1..10
+   LOOP   
+     dbms_output.put_line(i);
+ END LOOP;
+
+
