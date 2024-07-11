@@ -9,3 +9,57 @@ COUNT() - returns the number of rows in a set
 SUM() - returns the total sum of a numerical column
 AVG() - returns the average value of a numerical column
 Aggregate functions ignore null values (except for COUNT()).
+
+
+write query for prime members
+-----------------------------
+1.  with lvl as
+(
+  select level l from dual connect by level<=100
+), 
+unprime as
+(
+select l2.* from lvl l1,lvl l2 
+where l1.l<l2.l 
+and mod(l2.l,l1.l)=0 
+and l1.l>1
+)
+select lvl.l from lvl where l>1
+minus select l from unprime;
+
+
+2. select l prime_number
+      from (select level l from dual connect by level <= 100)
+         , (select level m from dual connect by level <= 100)
+     where m<=l
+     group by l
+    having count(case l/m when trunc(l/m) then 'Y' end) = 2
+     order by l
+  
+3. select listagg(prime_number,'&') within group (order by prime_number) from
+(select l prime_number
+from
+(select level l from dual connect by level <= 1000),
+(select level m from dual connect by level <= 1000)
+group by l
+having count (case l/m when trunc(l/m) then 1 end) in (2)
+order by l);
+  ===================================
+
+select level lvl1 from dual connect by level < 100
+minus
+select lvl1 from (
+select level lvl1, mod(level,2) modf from dual connect by level < 100)
+where modf = 0;
+
+select to_date('010124','ddmmrr')+level-1
+from dual
+connect by level<30;
+
+select deptno,sal,rank() over(partition by deptno order by sal) rank_sal,
+row_number() over(order by sal) r_n
+from emp order by deptno;
+
+select deptno,sal,dense_rank() over(order by sal) rank_sal,
+row_number() over(order by sal) r_n
+from emp order by deptno;
