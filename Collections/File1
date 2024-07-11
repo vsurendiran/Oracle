@@ -21,7 +21,7 @@ Set                          |  Nested table
 Bag                          |  Nested table
 Array                        |  VARRAY
 -----------------------------------------------------------------
-
+Associative array => Define, Declare, Initialize, Assign, Access
 DECLARE
   -- Associative array indexed by string: (formerly called PL/SQL table or index-by table) )
   DECLARE
@@ -46,3 +46,62 @@ DECLARE
 END;
 /
 Collection Methods : FIRST, LAST, NEXT, and PRIOR
+===============================================================================
+VARRAY is same datatype
+VARRAY => Define, Declare, Initialize, Assign, Access
+
+Declare
+TYPE v_array_type IS VARRAY(7) of VARCHAR2(30); -- Define part
+--Maximum 7 elements with 30 characters
+v_day v_array_type := v_array_type(null,null,null,null,null,null,null); -- declaration and initialization
+begin
+v_day(1) := 'Monday';
+v_day(2) := 'Tuesday';
+v_day(3) := 'Wednesday';
+v_day(1) := 'Thursday';
+v_day(1) := 'Friday';
+v_day(1) := 'Friday';
+v_day(1) := 'Friday';
+dbms_output.put_line(v_day(1));
+end;
+==================================================================================
+Declare
+TYPE v_array_type IS VARRAY(7) of VARCHAR2(30); -- Define part
+--Maximum 7 elements with 30 characters
+--v_day v_array_type := v_array_type(null,null,null,null,null,null,null); -- declaration and initialization
+v_day v_array_type := v_array_type(); -- declaration and initialization
+begin
+v_day.extend(7);
+v_day(1) := 'Monday';
+v_day(2) := 'Tuesday';
+v_day(3) := 'Wednesday';
+v_day(4) := 'Thursday';
+v_day(5) := 'Friday';
+v_day(6) := 'Friday';
+v_day(7) := 'Friday';
+dbms_output.put_line(v_day(1));
+end;
+===========================================================================================
+Nested Table
+============
+Can hold n number of values ( No upper bound)
+Nested Table => Define, Declare, Initialize, Assign, Access
+Ex: 
+DECLARE
+  TYPE v_nested_tab_type IS TABLE OF VARCHAR2(30);
+  v_day v_nested_tab_type := v_nested_tab_type(null,null,null,null,null,null,null);
+BEGIN
+v_day(1) := 'Monday';
+v_day(2) := 'Tuesday';
+v_day(3) := 'Wednesday';
+v_day(4) := 'Thursday';
+v_day(5) := 'Friday';
+v_day(6) := 'Friday';
+v_day(7) := 'Friday';
+dbms_output.put_line(v_day(1));
+end;
+======================================================================================
+VARRAY methods => Limit, count, first, last, trim, trim(n), delete,extend, extend(n), prior, next
+Nested Table methods => Limit(will be zero since there is no upper limit), count, first, last, trim, trim(n), delete,extend, extend(n), prior, next, exists
+Associative_array => count, first, last, delete,extend, extend(n), prior, next
+
