@@ -1,6 +1,6 @@
 Bulk collect is using to reduce the context switching between pl sql engine and sql engine.
 In-bind -- When an Insert, update or merge statements stores a plsql or host variables in the database.
-Out-bind -- Returning into clause of an insert
+Out-bind -- when the Returning into clause of an insert, update or delete statement assigns a database values to pl/sql or host variable
 Define -- when a select or fetch
 
 Example:
@@ -22,3 +22,29 @@ BEGIN
     dbms_output.put_line(lv_nest_tab(i).empno||'    '||lv_nest_tab(i).ename);
     END LOOP;
 END;
+
+
+--Save Exceptions
+Declare
+   type tt_nest_tab_type is table of emp%rowtype;
+        lv_nest_tab  tt_nest_tab_type :=tt_nest_tab_type();
+       -- lv_postal_code_rec emp%rowtype;
+BEGIN
+   SELECT * 
+   BULK COLLECT INTO lv_nest_tab from emp;
+    forall i in lv_nest_tab.first .. lv_nest_tab.last save exceptions --- save exceptions 
+    insert into emp_backup values lv_nest_tab(i) 
+Exceptions when others then
+dbms_output.put_line('No of Error occured '||SQL%Bulk_exceptions.count);
+for i in 1..SQL%Bulk_exceptions.count
+loop
+dbms_output.put_line('  Error position '||SQL%Bulk_exceptions(i).error_index);
+dbms_output.put_line('  Error code '||SQL%Bulk_exceptions(i).error_code);
+end loop;
+
+END;
+
+SQL%Bulk_exceptions.count
+SQL%Bulk_exceptions(i).error_index
+SQL%Bulk_exceptions(i).error_code
+SQL%Bulk_exceptions.count
