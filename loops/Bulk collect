@@ -1,0 +1,24 @@
+Bulk collect is using to reduce the context switching between pl sql engine and sql engine.
+In-bind -- When an Insert, update or merge statements stores a plsql or host variables in the database.
+Out-bind -- Returning into clause of an insert
+Define -- when a select or fetch
+
+Example:
+--------
+Declare
+   type tt_nest_tab_type is table of emp%rowtype;
+        lv_nest_tab  tt_nest_tab_type :=tt_nest_tab_type();
+       -- lv_postal_code_rec emp%rowtype;
+BEGIN
+   SELECT * 
+   BULK COLLECT INTO lv_nest_tab from emp;
+--   for i in lv_nest_tab.first .. lv_nest_tab.last
+--    LOOP
+--    dbms_output.put_line(lv_nest_tab(i).empno);
+--    END LOOP;
+    
+    for i in lv_nest_tab.first .. lv_nest_tab.last
+    LOOP
+    dbms_output.put_line(lv_nest_tab(i).empno||'    '||lv_nest_tab(i).ename);
+    END LOOP;
+END;
