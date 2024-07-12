@@ -63,3 +63,19 @@ from emp order by deptno;
 select deptno,sal,dense_rank() over(order by sal) rank_sal,
 row_number() over(order by sal) r_n
 from emp order by deptno;
+
+Soft parsing => shared pool check 
+Hard parsing
+
+Syntax check => semantic check => shared pool check (Parsing)
+optimization => Row source generation => Execution (Optimization and Execution)
+
+SQL Injection
+SQL injection is a code injection technique that might destroy your database.
+
+SQL injection is one of the most common web hacking techniques.
+
+SQL injection is the placement of malicious code in SQL statements, via web page input.
+
+exec dbms_stats.gather_index_stats(‘table_name’, ‘Index name’);
+exec dbms_stats.gather_table_stats(‘Schema_name’, ‘Table_name’);
