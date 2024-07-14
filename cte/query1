@@ -6,15 +6,32 @@ on average_salary.deptno = emp.deptno
 where emp.sal > average_salary.avg_sal;
 
 
-
+============================================
 with 
- function empname(v_empno in number)
- return varchar2 is
- v_empname varchar2;
- begin
-  select ename into v_empname 
-    from emp where empno = v_empno;
-  return v_empname;
-  when no 
- end;
- select empno,empname(empno) name from emp;
+ function empname(v_empno in number)  return varchar2 is
+ v_empname varchar2(100);
+         begin
+          select ename into v_empname 
+            from emp where empno = v_empno;
+          return v_empname;
+          end;
+ function deptname(v_deptno in number)  return varchar2 is
+ v_deptname varchar2(100);
+             begin
+              select dname into v_deptname 
+                from dept where deptno = v_deptno;
+              return v_deptname;
+              end;
+ select empno, empname(empno) name , deptname(deptno) dname from emp;
+ 
+
+-----Select statement in the beginging hint (with_plsql) -------
+=====================================================================
+select /*+ with_plsql */ * from (
+with
+  function fn_cube(pno number) return number as
+    begin
+       return power(pno,3);
+    end;
+    select level as num, fn_cube(level) c_root from dual connect by level <=10
+    );
