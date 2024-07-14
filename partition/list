@@ -1,0 +1,48 @@
+drop table sales_data;
+
+create table sales_data (sno number,
+country Varchar2(100),
+state varchar2(100),
+sales_qty number)
+partition by list(country)
+(partition p_usa values ('usa'),
+partition p_india values ('india'),
+partition p_china values ('china'),
+partition p_others values ('default')
+);
+
+ 
+insert into sales_data(sno,country,state,sales_qty) values (1,'USA','Texas',1000);
+insert into sales_data(sno,country,state,sales_qty) values (1,'usa','Florida',1000);
+
+insert into sales_data(sno,country,state,sales_qty) values (1,'india','Karnataka',1000);
+insert into sales_data(sno,country,state,sales_qty) values (1,'india','Tamilnadu',1000);
+insert into sales_data(sno,country,state,sales_qty) values (1,'india','Delhi',1000);
+
+insert into sales_data(sno,country,state,sales_qty) values (1,'china','Beiging',1000);
+
+select table_name, partition_name, high_value, num_rows from user_tab_partitions;   ---  user_tab_partitions Table
+
+exec dbms_stats.gather_table_stats(USER,'SALES_DATA');  -- Gather statistics
+
+
+Sub partition
+=============
+drop table sales_data;
+
+create table sales_data (sno number,
+country Varchar2(100),
+state varchar2(100),
+sales_qty number)
+partition by list(country) subpartition by list (state)
+(
+     partition p_usa values ('USA')
+        (subpartition p_usa_florida values ('FLORIDA'),
+         subpartition p_usa_others values ('DEFAULT')
+ ),
+ 
+partition p_india values ('INDIA'),
+partition p_china values ('CHINA'),
+partition p_others values (default)
+);
+
