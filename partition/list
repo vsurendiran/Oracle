@@ -46,3 +46,61 @@ partition p_china values ('CHINA'),
 partition p_others values (default)
 );
 
+
+Multi column partition
+======================
+create table sales_data (sno number,
+country Varchar2(100),
+state varchar2(100),
+sales_qty number)
+partition by list(country,state)
+(
+    partition p_usa values (('USA','FLORIDA')), 
+    partition p_india values (('INDIA','KARNATAKA'), ('INDIA','TAMILNADU')),
+    partition p_others values (default)
+);
+
+
+insert into sales_data(sno,country,state,sales_qty) values (1,'USA','Texas',1000);
+insert into sales_data(sno,country,state,sales_qty) values (1,'USA','FLORIDA',1000);
+
+insert into sales_data(sno,country,state,sales_qty) values (1,'INDIA','Karnataka',1000);
+insert into sales_data(sno,country,state,sales_qty) values (1,'INDIA','Tamilnadu',1000);
+insert into sales_data(sno,country,state,sales_qty) values (1,'INDIA','Delhi',1000);
+
+insert into sales_data(sno,country,state,sales_qty) values (1,'CHINA','Beiging',1000);
+
+select table_name, partition_name, high_value, num_rows from user_tab_partitions;
+
+select table_name, partition_name, subpartition_name, high_value, num_rows from user_tab_subpartitions;
+
+exec dbms_stats.gather_table_stats(USER,'SALES_DATA');
+
+Automatic partition
+===================
+drop table sales_data;
+
+create table sales_data (sno number,
+country Varchar2(100),
+state varchar2(100),
+sales_qty number)
+partition by list(country,state) AUTOMATIC  -- Automatic
+(
+    partition p_usa_florida values (('USA','FLORIDA')), 
+    partition p_india_ka_tn values (('INDIA','KARNATAKA'), ('INDIA','TAMILNADU'))
+);
+
+
+insert into sales_data(sno,country,state,sales_qty) values (1,'USA','Texas',1000);
+insert into sales_data(sno,country,state,sales_qty) values (1,'USA','FLORIDA',1000);
+
+insert into sales_data(sno,country,state,sales_qty) values (1,'INDIA','KARNATAKA',1000);
+insert into sales_data(sno,country,state,sales_qty) values (1,'INDIA','TAMILNADU',1000);
+insert into sales_data(sno,country,state,sales_qty) values (1,'INDIA','Delhi',1000);
+
+insert into sales_data(sno,country,state,sales_qty) values (1,'CHINA','Beiging',1000);
+
+select table_name, partition_name, high_value, num_rows from user_tab_partitions;
+
+select table_name, partition_name, subpartition_name, high_value, num_rows from user_tab_subpartitions;
+
