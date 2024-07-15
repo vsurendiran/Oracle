@@ -1,3 +1,14 @@
+WITH cte (n) AS (
+    SELECT 1 AS n FROM dual
+    UNION ALL
+    SELECT n + 1 FROM cte WHERE n < 5
+)
+SELECT * FROM cte;
+===============================================
+
+
+
+===============================================
 with average_salary (deptno, avg_sal) as
 (select deptno, round(avg(sal),-1) 
    from emp group by deptno)
