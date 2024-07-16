@@ -79,3 +79,23 @@ SQL injection is the placement of malicious code in SQL statements, via web page
 
 exec dbms_stats.gather_index_stats(‘table_name’, ‘Index name’);
 exec dbms_stats.gather_table_stats(‘Schema_name’, ‘Table_name’);
+
+
+When you drop a table in Oracle, several associated objects are also automatically dropped. 
+This helps maintain database integrity and prevents orphaned objects. 
+Here are the primary objects that are typically dropped along with a table:
+
+Indexes: All indexes (both visible and invisible) created on the table's columns are dropped.
+Constraints: All constraints associated with the table are dropped, including:
+Primary key constraints
+Foreign key constraints
+Unique constraints
+Check constraints
+Triggers: All triggers associated with the table are dropped.
+Dependent Views: Views that directly reference the dropped table are invalidated (not dropped but need to be recompiled or recreated).
+Synonyms: Synonyms referring to the table are not automatically dropped but will become invalid.
+Partitions and Subpartitions: All partitions and subpartitions (if the table is partitioned) are dropped.
+Statistics: All statistics gathered on the table and its indexes are dropped.
+Materialized View Logs: If a materialized view log is created on the table, it is dropped.
+LOB Segments: If the table has columns of type LOB (Large Object), the associated LOB segments and indexes are dropped.
+Nested Tables: If the table contains nested table columns, the associated storage tables for the nested tables are dropped.
