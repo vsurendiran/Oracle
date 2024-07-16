@@ -1,0 +1,798 @@
+1. What exactly index stores in DB & Why it is improving performance of query?
+	- **Indexed Columns and RowIDs**: An index stores column values and pointers to the actual rows.
+	- **B-tree Structure**: Most indexes use a balanced tree structure for efficient searching.
+	- **Query Performance**: Indexes improve query performance by enabling faster data retrieval and reducing I/O operations.
+	- **Trade-offs**: Indexes require additional storage and can impact DML performance.
+
+2. Why we use packages in oracle? How we can descide when to create package?
+	Using packages in Oracle provides significant benefits for organizing, maintaining, and optimizing your PL/SQL code. 
+	They enhance modularity, encapsulation, performance, and security. You should consider creating a package when you have a set of related subprograms, 
+	need to maintain state information, or want to improve code reuse and maintainability. By carefully designing and using packages, 
+	you can create more robust, efficient, and manageable database applications.
+
+3. What are different types of B-tree indexes?
+	Each type of B-tree index is optimized for specific scenarios, and choosing the right type of index depends on the nature of the queries and the characteristics of the data. 
+	Properly designed indexes can significantly improve query performance, but it's also important to consider the trade-offs in terms of storage and maintenance overhead. 
+	Here is a quick summary:
+
+	- **Standard B-tree Index**: General-purpose, high cardinality.
+	- **Bitmap Index**: Low cardinality, read-heavy environments.
+	- **Clustered Index**: Single index per table, physical data order.
+	- **Non-clustered Index**: Multiple indexes per table, logical data order.
+	- **Composite Index**: Multi-column queries.
+	- **Function-based Index**: Derived or transformed values.
+	- **Reverse Key Index**: Reducing insert contention.
+	- **Descending Index**: Descending order queries.
+
+
+4. How to correct unbalanced b-tree index? 
+	- **Regular Maintenance**: Schedule regular maintenance tasks to monitor and rebuild indexes as needed.
+	- **Monitor Performance Metrics**: Continuously monitor performance metrics to catch potential issues early.
+	- **Use Appropriate Index Types**: Ensure that you are using the appropriate type of index for your workload and data distribution.
+	- **Balance Cost and Benefit**: Weigh the benefits of rebuilding indexes against the performance costs during maintenance windows.
+
+4. How to convert existing table to partation based table?
+	- Create a new partitioned table.
+	- Copy data from the old table to the new partitioned table.
+	- Recreate any indexes and constraints.
+	- Rename the tables.
+	- Drop the old table.
+
+select * from user_tab_partitions;
+exec dbms_stats.gather_table_stats(USER, Table_name)
+
+
+5. Is it possible to write DML inside function? if Yes give an example?
+    CREATE OR REPLACE FUNCTION update_employee_salary (
+    	p_emp_id NUMBER,
+    	p_new_salary NUMBER
+	) RETURN VARCHAR2 IS
+    	PRAGMA AUTONOMOUS_TRANSACTION;
+    BEGIN
+    	UPDATE employees
+    	SET salary = p_new_salary
+    	WHERE emp_id = p_emp_id;
+    
+    	COMMIT; -- Required to commit the autonomous transaction
+    
+    	RETURN 'Salary updated successfully';
+    EXCEPTION
+      WHEN OTHERS THEN
+        ROLLBACK; -- Rollback in case of an error
+        RETURN 'Error occurred while updating salary';
+    END;
+    /
+
+BEGIN
+    DECLARE
+        result VARCHAR2(100);
+    BEGIN
+        result := update_employee_salary(1, 50000);
+        DBMS_OUTPUT.PUT_LINE(result);
+    END;
+END;
+/
+
+
+6. What will happen if we delete all rows from trigger situated on same table before insert? Give an example
+	While it's technically possible to delete all rows from a table within a BEFORE INSERT trigger, it's generally not advisable due to the significant implications on performance, data 		consistency, and integrity. Triggers should be used judiciously and designed to avoid such side effects.
+
+
+7. What binary index exactly stores in DB when we create it? and how it in working?
+	A B-tree index in a database stores a balanced tree structure where nodes contain indexed values and pointers to table rows. 
+	It enhances query performance by allowing efficient searches, insertions, updates, and deletions due to its logarithmic time complexity and balanced nature.
+
+8. How Merge is working? Give simple example.
+	The MERGE statement provides a powerful way to synchronize data between tables by combining INSERT, UPDATE, and DELETE operations into a single, efficient statement. 
+	It simplifies the process of managing data changes and is particularly useful for maintaining data warehouses, synchronizing tables, and handling data integration tasks.
+Match: Determine which rows in the target table correspond to rows in the source table based on a specified condition.
+Insert: Add new rows to the target table if no match is found.
+Update: Modify existing rows in the target table if a match is found.
+Delete: Optionally remove rows from the target table based on the results.
+
+	MERGE INTO employees e
+	USING new_employees ne
+	ON (e.emp_id = ne.emp_id)
+		WHEN MATCHED THEN
+  	 	 UPDATE SET e.emp_name = ne.emp_name, e.emp_salary = ne.emp_salary
+		WHEN NOT MATCHED THEN
+    		INSERT (emp_id, emp_name, emp_salary)
+    		VALUES (ne.emp_id, ne.emp_name, ne.emp_salary);
+
+
+9. How connect by & Start with & Prior work? Explain with example.
+	
+	SELECT emp_id, emp_name, mgr_id, LEVEL
+	FROM employees
+	START WITH emp_id = 1
+	CONNECT BY PRIOR emp_id = mgr_id
+	ORDER BY LEVEL;
+
+	START WITH: Sets the starting point of the hierarchy.
+	CONNECT BY: Defines the hierarchical relationship between rows using PRIOR to reference the parent row.
+	PRIOR: Used within CONNECT BY to refer to the value of the parent row, enabling traversal from parent to child.
+
+10.EXpain rank_dense function with example?
+
+11.How to use rank() as aggrigate function & analystical function?
+
+12.Why we required globle index on partation table if we have local index on every partation?
+while local indexes are essential for managing and querying data within individual partitions, global indexes provide a comprehensive view and improve performance for queries that span multiple partitions, ensuring efficient data retrieval and management.
+
+
+13.Explain connect by & start with one of ther tree level structure.
+
+
+14.When bitmap index is used insted of b-tree index?
+
+15.What is Normalisation? 
+	Normalization is a systematic approach to organizing data in a relational database to eliminate redundancy, ensure data integrity, and simplify data management. 
+	By applying normalization principles, databases can be designed to be more efficient, consistent, and scalable. Each normal form addresses different aspects of 
+	data redundancy and integrity, progressively refining the database design.
+
+16.types of joins using (+) operator?  
+
+17.What are joins used by oracle in execution plan?
+
+18.How to Pivot table give simple example?
+		    SELECT * FROM (
+                    SELECT deptno, ename
+                    FROM emp
+                  ) PIVOT (count(deptno) FOR deptno IN ('10','20','30'));
+
+		SELECT * FROM (
+		SELECT deptno, mgr
+		FROM emp) PIVOT (count(deptno) FOR deptno IN ('10','20','30'));
+
+19.Give one example of Associated array, Varray, Nested table.
+	Associative Array: Key-value pairs where keys are of any scalar type. Suitable for fast access when the key is known.
+	VARRAY		 : Fixed-size array with a maximum number of elements. Useful when the size is known and bounded.
+	Nested Table	 : Unbounded collection with the ability to grow dynamically. Suitable for storing large amounts of data with potentially sparse elements.
+
+
+20.Explain redo logs, undo tablespace usage.  
+Redo Logs:
+
+Function: Record changes made to the database (for recovery purposes).
+Components: Online redo log files, redo log buffer.
+Usage: Crash recovery, roll-forward recovery.
+Undo Tablespace:
+
+Function: Store old versions of data for rollback and read consistency.
+Components: Undo segments.
+Usage: Transaction rollback, maintaining read consistency during concurrent transactions.
+Both redo logs and undo tablespaces are vital for database operations, ensuring that data modifications are recoverable and that transactions can be rolled back if needed.
+
+
+
+21.What it mean by context and how it is created?
+Summary
+In Oracle, a context is a mechanism that allows the storage and retrieval of user session-specific information. 
+Contexts are often used to maintain security, manage user-specific settings, and support application-specific requirements.
+
+Context: A mechanism for storing and retrieving user session-specific information.
+Namespace: A logical container for context attributes.
+Attributes: Key-value pairs stored in the context.
+User-Defined Context: Created using the CREATE CONTEXT statement and managed with a PL/SQL package.
+Setting Attributes: Use the DBMS_SESSION.SET_CONTEXT procedure.
+Retrieving Attributes: Use the SYS_CONTEXT function.
+Contexts are powerful tools for managing session-specific data, ensuring security, and supporting various application-specific requirements in Oracle databases.
+
+Ex. SELECT SYS_CONTEXT('my_context', 'user_id') AS user_id,
+       SYS_CONTEXT('my_context', 'user_role') AS user_role FROM dual;
+
+22.What is mean by application.info in oracle?
+While application.info is not a built-in feature or term in Oracle, it could refer to a user-defined application context where application-specific information is stored and managed. Creating an application context involves defining a context namespace, associating it with a PL/SQL package, and then using the DBMS_SESSION.SET_CONTEXT procedure to set attributes and the SYS_CONTEXT 
+
+
+23.Explain what is materialized view along with an example.
+
+A materialized view in Oracle is a database object that contains the results of a query. Unlike a regular view, which is a stored query that is run each time it is referenced, a materialized view stores the actual data. This can significantly improve query performance, especially for complex queries that aggregate and summarize large amounts of data.
+
+Storage: The results of the query are stored on disk, which means the data does not need to be recomputed each time the materialized view is accessed.
+Refresh: Materialized views can be refreshed to reflect changes in the base tables. The refresh can be done on-demand, at regular intervals, or in response to changes in the base tables.
+Usage: They are often used for performance optimization in data warehousing and reporting environments.
+
+
+CREATE MATERIALIZED VIEW product_sales_mv
+BUILD IMMEDIATE
+REFRESH FAST ON DEMAND
+AS
+SELECT product_id, SUM(amount) AS total_sales
+FROM sales
+GROUP BY product_id;
+
+EXEC DBMS_MVIEW.REFRESH('product_sales_mv');
+
+
+24.How to use recycle bin of 10 G to restore drop tables
+
+The Recycle Bin in Oracle 10g and later allows you to recover dropped tables easily. By querying the RECYCLEBIN view, you can see the list of dropped objects and restore them using the FLASHBACK TABLE statement. This feature helps to prevent data loss due to accidental table drops.
+
+SELECT object_name, original_name, type, droptime FROM recyclebin;
+FLASHBACK TABLE EMP_BK_PARTION TO BEFORE DROP;
+
+
+25.
+
+
+CREATE OR REPLACE TRIGGER update_emp_sal_tr 
+before INSERT on emp_backup
+for each row
+DECLARE
+    PRAGMA AUTONOMOUS_TRANSACTION;
+BEGIN
+    delete from emp_backup where empno = :new.empno;
+    COMMIT; -- Required to commit the autonomous transaction    
+END;
+
+
+
+
+4. What are different type of scanning used by index in oracle?
+
+1. Index fast full scan:
+
+A fast full scan is a full index scan in which the database reads all index blocks in no particular order. The database accesses the data in the index itself, without accessing the table.
+
+Example:
+
+SELECT table_name, index_name, column_position, column_name
+FROM user_ind_columns
+WHERE column_position = 1
+ORDER BY 1,2,3;
+
+SELECT DISTINCT program_id
+FROM airplanes;
+
+EXPLAIN PLAN FOR
+SELECT DISTINCT program_id
+FROM airplanes;
+
+SELECT * FROM TABLE(dbms_xplan.display);
+
+-------------------------------------------------------------------------
+| Id | Operation             | Name         | Rows | Bytes | Cost (%CPU)|
+-------------------------------------------------------------------------
+|  0 | SELECT STATEMENT      |              |    5 |    20 |    201 (41)|
+|  1 |  HASH UNIQUE          |              |    5 |    20 |    201 (41)|
+|  2 |   INDEX FAST FULL SCAN| PK_AIRPLANES |  250K|   976K|    132 (10)|
+-------------------------------------------------------------------------
+
+2. Index full scan:
+
+A full index scan eliminates a sort operation, because the data is ordered by the index key. It reads all index blocks singly. The database uses a full scan in any of the following situations:
+
+a. Order by 
+b. group by
+c. merge join
+
+SELECT srvr_id
+FROM servers;
+
+EXPLAIN PLAN FOR
+SELECT srvr_id
+FROM servers;
+
+SELECT * FROM TABLE(dbms_xplan.display);
+
+------------------------------------------------------------------
+| Id | Operation        | Name       | Rows | Bytes | Cost (%CPU)|
+------------------------------------------------------------------
+| 0 | SELECT STATEMENT  |            |  126 |   504 |       1 (0)|
+| 1 |  INDEX FULL SCAN  | PK_SERVERS |  126 |   504 |       1 (0)|
+------------------------------------------------------------------
+
+3. Index range Scan:
+
+A range scan is one in which the index is scanned for a range of values and the easiest way to force this behavior is with constructs such as BETWEEN and BOOLEAN operators such as < and >.
+
+-- example with equals ("=")
+SELECT *
+FROM t
+WHERE testcol = 2;
+
+CREATE INDEX nui_t ON t(testcol);
+
+EXPLAIN PLAN FOR
+SELECT *
+FROM t
+WHERE testcol = 2;
+
+SELECT * FROM TABLE(dbms_xplan.display);
+
+---------------------------------------------------------------
+| Id | Operation | Name | Rows | Bytes | Cost (%CPU)|
+---------------------------------------------------------------
+|  0 | SELECT STATEMENT | | 1 | 13 | 1 (0)|
+|* 1 |  INDEX RANGE SCAN| NUI_T | 1 | 13 | 1 (0)|
+---------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+1 - access("TESTCOL"=2)
+
+DROP INDEX nui_t;
+
+CREATE UNIQUE INDEX nui_t ON t(testcol);
+
+EXPLAIN PLAN FOR
+SELECT *
+FROM t
+WHERE testcol < 2;
+
+SELECT * FROM TABLE(dbms_xplan.display);
+
+--------------------------------------------------------------
+| Id | Operation         | Name  | Rows | Bytes | Cost (%CPU)|
+--------------------------------------------------------------
+|  0 | SELECT STATEMENT  |       |    1 |    13 |       0 (0)|
+|* 1 |  INDEX UNIQUE SCAN| NUI_T |    1 |    13 |       0 (0)|
+--------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+1 - access("TESTCOL"=2)
+
+/* What the Oracle docs don't say and yet is obviously important is that if the index is a unique index Oracle will preferentially choose a more efficient unique scan if it can. */
+
+-- examples with greater-than and less-than
+
+DROP INDEX nui_t;
+
+CREATE INDEX nui_t ON t(testcol);
+
+EXPLAIN PLAN FOR
+SELECT *
+FROM t
+WHERE testcol < 2;
+
+SELECT * FROM TABLE(dbms_xplan.display);
+
+-------------------------------------------------------------
+| Id | Operation        | Name  | Rows | Bytes | Cost (%CPU)|
+-------------------------------------------------------------
+|  0 | SELECT STATEMENT |       |    1 |    13 |       1 (0)|
+|* 1 |  INDEX RANGE SCAN| NUI_T |    1 |    13 |       1 (0)|
+-------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+1 - access("TESTCOL"<2)
+
+Note
+-----
+   - dynamic sampling used for this statement
+
+DROP INDEX nui_t;
+
+CREATE UNIQUE INDEX nui_t ON t(testcol);
+
+EXPLAIN PLAN FOR
+SELECT *
+FROM t
+WHERE testcol < 2;
+
+SELECT * FROM TABLE(dbms_xplan.display);
+
+-------------------------------------------------------------
+| Id | Operation        | Name  | Rows | Bytes | Cost (%CPU)|
+-------------------------------------------------------------
+|  0 | SELECT STATEMENT |       |    1 |    13 |       1 (0)|
+|* 1 |  INDEX RANGE SCAN| NUI_T |    1 |    13 |       1 (0)|
+-------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+1 - access("TESTCOL"<2)
+
+Note
+-----
+-- dynamic sampling used for this statement
+
+/* with the Boolean greater-than and less-than operators it does not matter whether the index is unique or non-unique */
+
+4. Index skip scan:
+
+An index skip scan uses logical subindexes of a composite index. The database "skips" through a single index as if it were searching separate indexes. Skip scanning is beneficial if there are few distinct values in the leading column of a composite index and many distinct values in the nonleading key of the index.
+
+CREATE TABLE ziggy_stuff AS
+SELECT MOD(rownum,500000) rid, mod(rownum,5) code, 'ZIGGY' fname
+FROM dual
+CONNECT BY LEVEL <= 1000000;
+
+/* Then, add a row that has a very distinct CODE value. Although there are only 6 different CODE values, there's only one occurrence of value 42. */
+
+INSERT INTO ziggy_stuff
+(rid, code, fname)
+VALUES
+(42, 42, 'BOWIE');
+COMMIT;
+
+SELECT code, COUNT(*)
+FROM ziggy_stuff
+GROUP BY code;
+
+exec dbms_stats.gather_table_stats(USER, 'ZIGGY_STUFF', CASCADE => TRUE, estimate_percent=> NULL, method_opt => 'FOR ALL COLUMNS SIZE 1');
+
+/* Create a histogram on the CODE value so that the CBO knows there are very few distinct CODEs with a value of 42. */
+
+exec dbms_stats.gather_table_stats(USER, 'ZIGGY_STUFF', CASCADE => TRUE, estimate_percent=> NULL, method_opt => 'FOR COLUMNS CODE SIZE 10');
+
+-- Next, create a multi-column index with the RID column as the leading column
+
+CREATE INDEX ix_ziggy_stuff_rid_code
+ON ziggy_stuff(rid, code);
+
+set autotrace on
+
+SELECT *
+FROM ziggy_stuff
+WHERE rid = 42
+AND code = 42;
+
+-----------------------------------------------------------------------------------------
+| Id | Operation                  | Name                    | Rows | Bytes | Cost (%CPU)|
+-----------------------------------------------------------------------------------------
+|  0 | SELECT STATEMENT           |                         |    1 |    13 |       4 (0)|
+|  1 | TABLE ACCESS BY INDEX ROWID| ZIGGY_STUFF             |    1 |    13 |       4 (0)|
+|* 2 | INDEX RANGE SCAN           | IX_ZIGGY_STUFF_RID_CODE |    1 |       |       3 (0)|
+-----------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+2 - access("RID"=42 AND "CODE"=42)
+
+Statistics
+----------------------------------------------------------
+  0 recursive calls
+  0 db block gets
+  5 consistent gets
+  2 physical reads
+  0 redo size
+535 bytes sent via SQL*Net to client
+416 bytes received via SQL*Net from client
+  2 SQL*Net roundtrips to/from client
+  0 sorts (memory)
+  0 sorts (disk)
+  1 rows processed
+
+-- as expected, Oracle searched on both columns and the index was used
+
+SELECT *
+FROM ziggy_stuff
+WHERE rid = 42;
+
+-----------------------------------------------------------------------------------------
+| Id | Operation                  | Name                    | Rows | Bytes | Cost (%CPU)|
+-----------------------------------------------------------------------------------------
+|  0 | SELECT STATEMENT           |                         |    2 |    26 |       5 (0)|
+|  1 | TABLE ACCESS BY INDEX ROWID| ZIGGY_STUFF             |    2 |    26 |       5 (0)|
+|* 2 | INDEX RANGE SCAN           | IX_ZIGGY_STUFF_RID_CODE |    2 |       |       3 (0)|
+-----------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+2 - access("RID"=42)
+
+Statistics
+----------------------------------------------------------
+  1 recursive calls
+  0 db block gets
+  7 consistent gets
+  0 physical reads
+  0 redo size
+603 bytes sent via SQL*Net to client
+416 bytes received via SQL*Net from client
+  2 SQL*Net roundtrips to/from client
+  0 sorts (memory)
+  0 sorts (disk)
+  3 rows processed
+
+/* Now lets search on only the leading column (RID) and again the index can be used effectively */
+
+SELECT *
+FROM ziggy_stuff
+WHERE code = 42;
+
+-------------------------------------------------------------------
+| Id | Operation        | Name        | Rows | Bytes | Cost (%CPU)|
+-------------------------------------------------------------------
+|  0 | SELECT STATEMENT |             |    1 |    13 |    559 (15)|
+|* 1 | TABLE ACCESS FULL| ZIGGY_STUFF |    1 |    13 |    559 (15)|
+-------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+1 - filter("CODE"=42)
+
+Statistics
+----------------------------------------------------------
+   1 recursive calls
+   0 db block gets
+2635 consistent gets
+   0 physical reads
+   0 redo size
+ 531 bytes sent via SQL*Net to client
+ 416 bytes received via SQL*Net from client
+   2 SQL*Net roundtrips to/from client
+   0 sorts (memory)
+   0 sorts (disk)
+   1 rows processed
+
+-- However, search on the CODE column only and the index can not be used.
+-- Whereas the leading column is very selective, a CODE value of 42 could
+-- potentially be referenced within any of the index leaf blocks
+
+-- Let's now re-create the index but with the columns reversed.
+
+DROP INDEX ix_ziggy_stuff_rid_code;
+
+CREATE INDEX ix_ziggy_stuff_code_rid
+ON ziggy_stuff(code, rid);
+
+SELECT *
+FROM ziggy_stuff
+WHERE rid = 42 AND code = 42;
+
+-----------------------------------------------------------------------------------------
+| Id | Operation                  | Name                    | Rows | Bytes | Cost (%CPU)|
+-----------------------------------------------------------------------------------------
+|  0 | SELECT STATEMENT           |                         |    1 |    13 |       4 (0)|
+|  1 | TABLE ACCESS BY INDEX ROWID| ZIGGY_STUFF             |    1 |    13 |       4 (0)|
+|* 2 | INDEX RANGE SCAN           | IX_ZIGGY_STUFF_CODE_RID |    1 |       |       3 (0)|
+-----------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+2 - access("CODE"=42 AND "RID"=42)
+
+Statistics
+----------------------------------------------------------
+  1 recursive calls
+  0 db block gets
+  4 consistent gets
+  2 physical reads
+  0 redo size
+535 bytes sent via SQL*Net to client
+416 bytes received via SQL*Net from client
+  2 SQL*Net roundtrips to/from client
+  0 sorts (memory)
+  0 sorts (disk)
+  1 rows processed
+
+-- again as expected, the index is used when both columns are searched
+
+SELECT *
+FROM ziggy_stuff
+WHERE code = 42;
+
+-----------------------------------------------------------------------------------------
+| Id | Operation                  | Name                    | Rows | Bytes | Cost (%CPU)|
+-----------------------------------------------------------------------------------------
+|  0 | SELECT STATEMENT           |                         |    1 |    13 |       4 (0)|
+|  1 | TABLE ACCESS BY INDEX ROWID| ZIGGY_STUFF             |    1 |    13 |       4 (0)|
+|* 2 | INDEX RANGE SCAN           | IX_ZIGGY_STUFF_CODE_RID |    1 |       |       3 (0)|
+-----------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+2 - access("CODE"=42)
+
+Statistics
+----------------------------------------------------------
+  1 recursive calls
+  0 db block gets
+  4 consistent gets
+  0 physical reads
+  0 redo size
+535 bytes sent via SQL*Net to client
+416 bytes received via SQL*Net from client
+  2 SQL*Net roundtrips to/from client
+  0 sorts (memory)
+  0 sorts (disk)
+  1 rows processed
+
+/* When searching on just the CODE column for the value 42, with the histogram in place, the CBO estimates there's only the one row and so can use the index effectively */
+
+SELECT * FROM ziggy_stuff WHERE rid = 42;
+
+----------------------------------------------------------------------------------------
+| Id | Operation                  | Name |                   Rows | Bytes | Cost (%CPU)|
+----------------------------------------------------------------------------------------
+|  0 | SELECT STATEMENT           |                         |  2 |     26 |      10 (0)|
+|  1 | TABLE ACCESS BY INDEX ROWID| ZIGGY_STUFF             |  2 |     26 |      10 (0)|
+|* 2 | INDEX SKIP SCAN            | IX_ZIGGY_STUFF_CODE_RID |  2 |        |       8 (0)|
+----------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+2 - access("RID"=42)
+filter("RID"=42)
+
+Statistics
+----------------------------------------------------------
+  1 recursive calls
+  0 db block gets
+ 19 consistent gets
+ 10 physical reads
+  0 redo size
+603 bytes sent via SQL*Net to client
+416 bytes received via SQL*Net from client
+  2 SQL*Net roundtrips to/from client
+  0 sorts (memory)
+  0 sorts (disk)
+  3 rows processed
+
+/* When searching on just RID column, the CBO knows there are only 6 distinct CODE values. The CBO can effectively probe the index in 6 different locations and retrieve all the necessary rows.
+
+At 19 consistent gets though, it's not as good as the 7 consistent gets with the previous index. However, it's not too bad and much better than the approx 2635 consistent gets required for a full table scan.
+
+Perhaps the new index will suffice, making the overheads associated having a second index unnecessary ... */
+
+SELECT /*+ NO_INDEX_SS(ziggy_stuff ix_ziggy_stuff_code_rid) */ *
+FROM ziggy_stuff
+WHERE rid = 42;
+
+---------------------------------------------------------------------------------
+| Id | Operation        | Name        | Rows | Bytes | Cost (%CPU)|
+-------------------------------------------------------------------
+|  0 | SELECT STATEMENT |             |    2 |    26 |    552 (14)|
+|* 1 | TABLE ACCESS FULL| ZIGGY_STUFF |    2 |    26 |    552 (14)|
+-------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+1 - filter("RID"=42)
+
+Statistics
+----------------------------------------------------------
+   1 recursive calls
+   0 db block gets
+2636 consistent gets
+   0 physical reads
+   0 redo size
+ 581 bytes sent via SQL*Net to client
+ 416 bytes received via SQL*Net from client
+   2 SQL*Net roundtrips to/from client
+   0 sorts (memory)
+   0 sorts (disk)
+   3 rows processed
+
+-- Sure looks that way: The skip scan is a good compromise.
+
+4. Index Unique Scan
+
+In contrast to an index range scan, an index unique scan must have either 0 or 1 rowid associated with an index key. The database performs a unique scan when a predicate references all of the columns in a UNIQUE index key using an equality operator. An index unique scan stops processing as soon as it finds the first record because no second record is possible.
+
+In other words the index must be created as a unique index either using the CREATE UNIQUE INDEX syntax or as a byproduct of the default creation (not deferrable) of a primary key or unique constraint.
+
+CREATE INDEX nui_t on t(testcol);
+
+SELECT COUNT(*)
+FROM t
+WHERE testcol = 2;
+
+EXPLAIN PLAN FOR
+SELECT COUNT(*)
+FROM t
+WHERE testcol = 2;
+
+SELECT * FROM TABLE(dbms_xplan.display);
+
+------------------------------------------------------------------------
+| Id | Operation        | Name  | Rows | Bytes | Cost (%CPU)| Time     |
+------------------------------------------------------------------------
+|  0 | SELECT STATEMENT |       |    1 |    13 |       1 (0)| 00:00:01 |
+|  1 | SORT AGGREGATE   |       |    1 |    13 |            |          |
+|* 2 | INDEX RANGE SCAN | NUI_T |    1 |    13 |       1 (0)| 00:00:01 |
+------------------------------------------------------------------------
+
+DROP INDEX nui_t;
+
+CREATE UNIQUE INDEX ui_t on t(testcol);
+
+EXPLAIN PLAN FOR
+SELECT COUNT(*)
+FROM t
+WHERE testcol = 2;
+
+SELECT * FROM TABLE(dbms_xplan.display);
+
+-----------------------------------------------------------------------
+| Id | Operation        | Name | Rows | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------
+|  0 | SELECT STATEMENT |      |    1 |    13 |       0 (0)| 00:00:01 |
+|  1 | SORT AGGREGATE   |      |    1 |    13 |            |          |
+|* 2 | INDEX UNIQUE SCAN| UI_T |    1 |    13 |       0 (0)| 00:00:01 |
+-----------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+2 - access("TESTCOL"=2)
+
+-- other ways of producing a UNIQUE SCAN
+WHERE testcol IN (2)
+WHERE testcol IN (2,3)
+WHERE testcol IN (SELECT COUNT(*) FROM user_tables WHERE table_name = 'T')
+WHERE testcol BETWEEN 3 AND 3 -- a range scan results if the values are not identical
+
+5. Index range scan descending 
+
+An index range scan descending is identical to an index range scan, except that the data is returned in descending order. Indexes, by default, are stored in ascending order. Usually, the database uses this scan when ordering data in a descending order to return the most recent data first, or when seeking a value less than a specified value.
+
+The optimizer uses index range scan descending when an an index can satisfy an order by descending clause.
+
+SELECT *
+FROM t;
+
+-- if it exists
+DROP INDEX nui_t;
+
+CREATE INDEX di_t
+ON t(testcol DESC);
+
+EXPLAIN PLAN FOR
+SELECT *
+FROM t
+WHERE testcol BETWEEN 3 AND 4;
+
+SELECT * FROM TABLE(dbms_xplan.display);
+
+------------------------------------------------------------
+| Id | Operation        | Name | Rows | Bytes | Cost (%CPU)|
+------------------------------------------------------------
+|  0 | SELECT STATEMENT |      |    2 |    26 |       1 (0)|
+|* 1 |  INDEX RANGE SCAN| DI_T |    2 |    26 |       1 (0)|
+------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+1 - access(SYS_OP_DESCEND("TESTCOL")>=HEXTORAW('3EFAFF') AND
+SYS_OP_DESCEND("TESTCOL")<=HEXTORAW('3EFBFF') )
+filter(SYS_OP_UNDESCEND(SYS_OP_DESCEND("TESTCOL"))>=3 AND
+SYS_OP_UNDESCEND(SYS_OP_DESCEND("TESTCOL"))<=4)
+
+Note
+-----
+- dynamic sampling used for this statement
+
+/* That wasn't it so we can forget about that. It a DESCENDING SCAN has nothing to do with the use of a descending index. Now lets look at what it is. */
+
+DROP INDEX di_t;
+
+CREATE INDEX nui_t
+ON t(testcol);
+
+EXPLAIN PLAN FOR
+SELECT *
+FROM t
+WHERE testcol BETWEEN 3 AND 4
+ORDER BY testcol DESC;
+
+SELECT * FROM TABLE(dbms_xplan.display);
+
+--------------------------------------------------------------------------
+| Id | Operation | Name | Rows | Bytes | Cost (%CPU)|
+--------------------------------------------------------------------------
+| 0 | SELECT STATEMENT | | 2 | 26 | 1 (0)|
+|* 1 | INDEX RANGE SCAN DESCENDING| NUI_T | 2 | 26 | 1 (0)|
+--------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+1 - access("TESTCOL">=3 AND "TESTCOL"<=4)
+
+Note
+-----
+- dynamic sampling used for this statement
+
+-- It is, as you can now see a reverse read on an ascending index.
