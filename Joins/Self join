@@ -1,0 +1,9 @@
+To find manager name using self join
+====================================
+SELECT e1.empno AS employee_id, 
+       e1.ename AS employee_name, 
+       e2.empno AS manager_id, 
+       e2.ename AS manager_name
+FROM emp  e1
+LEFT JOIN emp  e2
+ON e1.mgr = e2.empno;
