@@ -1,3 +1,14 @@
+SELECT 
+    segment_name AS table_name,
+    segment_type,
+    bytes / 1024 / 1024 AS size_in_MB
+FROM 
+    dba_segments
+WHERE 
+    segment_type = 'EMP'
+    AND segment_name = 'YOUR_TABLE_NAME';
+
+
 SYSDATE: Returns the current date and time of the database server.
 CURRENT_DATE: Returns the current date and time in the session's time zone.
 
