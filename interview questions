@@ -401,7 +401,8 @@ Note
 
 4. Index skip scan:
 
-An index skip scan uses logical subindexes of a composite index. The database "skips" through a single index as if it were searching separate indexes. Skip scanning is beneficial if there are few distinct values in the leading column of a composite index and many distinct values in the nonleading key of the index.
+An index skip scan uses logical subindexes of a composite index. The database "skips" through a single index as if it were searching separate indexes. 
+Skip scanning is beneficial if there are few distinct values in the leading column of a composite index and many distinct values in the nonleading key of the index.
 
 CREATE TABLE ziggy_stuff AS
 SELECT MOD(rownum,500000) rid, mod(rownum,5) code, 'ZIGGY' fname
