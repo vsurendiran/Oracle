@@ -75,7 +75,8 @@ END;
 
 
 6. What will happen if we delete all rows from trigger situated on same table before insert? Give an example
-	While it's technically possible to delete all rows from a table within a BEFORE INSERT trigger, it's generally not advisable due to the significant implications on performance, data 		consistency, and integrity. Triggers should be used judiciously and designed to avoid such side effects.
+	While it's technically possible to delete all rows from a table within a BEFORE INSERT trigger, it's generally not advisable due to the significant implications on performance, 
+data consistency, and integrity. Triggers should be used judiciously and designed to avoid such side effects.
 
 
 7. What binary index exactly stores in DB when we create it? and how it in working?
@@ -182,7 +183,9 @@ Ex. SELECT SYS_CONTEXT('my_context', 'user_id') AS user_id,
        SYS_CONTEXT('my_context', 'user_role') AS user_role FROM dual;
 
 22.What is mean by application.info in oracle?
-While application.info is not a built-in feature or term in Oracle, it could refer to a user-defined application context where application-specific information is stored and managed. Creating an application context involves defining a context namespace, associating it with a PL/SQL package, and then using the DBMS_SESSION.SET_CONTEXT procedure to set attributes and the SYS_CONTEXT 
+While application.info is not a built-in feature or term in Oracle, it could refer to a user-defined application context where application-specific information is stored and managed. 
+Creating an application context involves defining a context namespace, associating it with a PL/SQL package, and then using the DBMS_SESSION.SET_CONTEXT procedure to set attributes 
+and the SYS_CONTEXT 
 
 
 23.Explain what is materialized view along with an example.
@@ -196,11 +199,15 @@ Usage: They are often used for performance optimization in data warehousing and 
 
 CREATE MATERIALIZED VIEW product_sales_mv
 BUILD IMMEDIATE
-REFRESH FAST ON DEMAND
+REFRESH FAST ON DEMAND /Refresh Fast on commit / refresh force / never refresh
 AS
 SELECT product_id, SUM(amount) AS total_sales
 FROM sales
 GROUP BY product_id;
+
+
+create materialized view log on product_sales with rowid;
+--mlog$_product_sales => log table will create
 
 EXEC DBMS_MVIEW.REFRESH('product_sales_mv');
 
@@ -796,3 +803,12 @@ Note
 - dynamic sampling used for this statement
 
 -- It is, as you can now see a reverse read on an ascending index.
+
+How to retrieve the deleted table
+==================================
+SELECT object_name, original_name, type, droptime FROM recyclebin;
+
+FLASHBACK TABLE EMP_BK_PARTION TO BEFORE DROP;
+
+select * from emp_bk_partion;
+rename emp_bk_partion to emp_bk_partition
