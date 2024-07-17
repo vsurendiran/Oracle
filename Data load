@@ -19,4 +19,24 @@ INFILE 'lob_test_data.txt'
     clob_filename     FILLER CHAR(100),
     clob_content      LOBFILE(clob_filename) TERMINATED BY EOF,
     blob_filename     FILLER CHAR(100),
-    blob_content      LOBFILE(blob_filename) TERMINATED BY EOF)
+    blob_content      LOBFILE(blob_filename) TERMINATED BY EOF);
+
+COLUMN varchar2_content FORMAT A16
+COLUMN date_content FORMAT A12
+COLUMN clob_content FORMAT A20
+SELECT number_content,
+       varchar2_content,
+       TO_CHAR(date_content, 'DD-MON-YYYY') AS date_content,
+       clob_content,
+       DBMS_LOB.getlength(blob_content) AS blob_length
+FROM   lob_tab;
+
+
+ explain plan for
+ select count(*) from dbaclass;
+
+Explained.
+
+--- DISPLAY THE EXPLAIN PLAN
+
+SQL> select * from table(dbms_xplan.display)
