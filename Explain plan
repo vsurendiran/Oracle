@@ -1,4 +1,6 @@
-In Oracle, the `EXPLAIN PLAN` statement is used to display the execution plan that the Oracle optimizer chooses for a given SQL statement. The execution plan shows the path and operations Oracle will use to execute the query, including table scans, index scans, joins, and other operations. Understanding and analyzing the execution plan is crucial for optimizing SQL performance.
+In Oracle, the `EXPLAIN PLAN` statement is used to display the execution plan that the Oracle optimizer chooses for a given SQL statement. 
+The execution plan shows the path and operations Oracle will use to execute the query, including table scans, index scans, joins, and other operations. 
+Understanding and analyzing the execution plan is crucial for optimizing SQL performance.
 
 ### Key Concepts
 
@@ -19,30 +21,21 @@ The execution plan is stored in a special table called `PLAN_TABLE`.
 #### Step-by-Step Process
 
 1. **Prepare the PLAN_TABLE**:
-   
    The `PLAN_TABLE` is a table used to store the execution plan information. If it doesn't exist, you can create it using the script 
    provided by Oracle (`utlxplan.sql`).
-
-   ```sql
    @$ORACLE_HOME/rdbms/admin/utlxplan.sql
-   ```
 
 2. **Generate the Execution Plan**:
    
    Use the `EXPLAIN PLAN` statement to generate the plan for your query.
-
-   ```sql
    EXPLAIN PLAN FOR
    SELECT last_name, first_name FROM employees WHERE last_name = 'Smith';
-   ```
 
 3. **View the Execution Plan**:
    
    Query the `PLAN_TABLE` to view the execution plan. You can use the `DBMS_XPLAN` package for a more readable format.
 
-   ```sql
    SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
-   ```
 
 ### Interpreting the Execution Plan
 
@@ -107,4 +100,109 @@ Predicate Information (identified by operation id):
 
 ### Conclusion
 
-`EXPLAIN PLAN` is a valuable tool for understanding and optimizing the performance of SQL queries in Oracle. By analyzing the execution plan, you can identify potential bottlenecks and inefficiencies in your queries and take steps to improve their performance. Regularly monitoring and optimizing execution plans is essential for maintaining the overall health and efficiency of your Oracle database.
+`EXPLAIN PLAN` is a valuable tool for understanding and optimizing the performance of SQL queries in Oracle. By analyzing the execution plan, 
+you can identify potential bottlenecks and inefficiencies in your queries and take steps to improve their performance. Regularly monitoring and 
+optimizing execution plans is essential for maintaining the overall health and efficiency of your Oracle database.
+
+
+select * from emp e 
+inner join dept d on 
+e.deptno = d.deptno where empno = 7839;
+
+select * from user_indexes where index_name = 'PK_DEPT';
+
+Viewing Statistics
+Oracle stores statistics in data dictionary views. Some of the most commonly used views are:
+
+DBA_TABLES: Contains information about tables, including row counts and average row length.
+DBA_TAB_COLUMNS: Contains column statistics, including the number of distinct values and histograms.
+DBA_INDEXES: Contains information about indexes, including the number of leaf blocks and clustering factor.
+DBA_TAB_STATISTICS: Contains information about table-level statistics.
+DBA_IND_STATISTICS: Contains information about index-level statistics.
+
+Example: Viewing Table Statistics
+SELECT table_name, num_rows, blocks, avg_row_len
+FROM dba_tables
+WHERE owner = 'HR' AND table_name = 'EMPLOYEES';
+
+Example: Viewing Column Statistics
+SELECT table_name, column_name, num_distinct, density, num_nulls, histogram
+FROM dba_tab_columns
+WHERE owner = 'HR' AND table_name = 'EMPLOYEES';
+
+Using Histograms
+Histograms are a type of column statistic that provide more detailed information about the data distribution within a column. They help the optimizer generate more accurate cardinality estimates for skewed data distributions.
+
+Height-Balanced Histograms: Used for columns with a few distinct values.
+Frequency Histograms: Used for columns with a small number of distinct values.
+Top-Frequency Histograms: Used for columns where a few values occur very frequently.
+Hybrid Histograms: Combines the benefits of height-balanced and frequency histograms.
+Example: Creating a Histogram
+sql
+Copy code
+BEGIN
+   DBMS_STATS.GATHER_TABLE_STATS(
+      ownname   => 'HR',
+      tabname   => 'EMPLOYEES',
+      method_opt => 'FOR ALL COLUMNS SIZE AUTO'
+   );
+END;
+/
+method_opt: Specifies the method for gathering statistics. 'FOR ALL COLUMNS SIZE AUTO' allows Oracle to decide which columns need histograms and the number of histogram buckets.
+Automatic Statistics Gathering
+Oracle automatically gathers statistics for database objects when certain thresholds are met. This is managed by the automated maintenance tasks, which include the Automatic Optimizer Statistics Collection job.
+
+Automatic Statistics Collection: Runs during the maintenance windows and gathers statistics for tables with stale or missing statistics.
+Stale Statistics: Statistics are considered stale when more than 10% of the rows in a table have been changed.
+Example: Checking Automatic Statistics Collection
+sql
+Copy code
+SELECT client_name, status
+FROM dba_autotask_client
+WHERE client_name = 'auto optimizer stats collection';
+Locking Statistics
+To prevent automatic statistics gathering from overwriting manually collected statistics, you can lock the statistics for a table.
+
+Example: Locking Table Statistics
+sql
+Copy code
+BEGIN
+   DBMS_STATS.LOCK_TABLE_STATS('HR', 'EMPLOYEES');
+END;
+/
+Example: Unlocking Table Statistics
+sql
+Copy code
+BEGIN
+   DBMS_STATS.UNLOCK_TABLE_STATS('HR', 'EMPLOYEES');
+END;
+/
+Conclusion
+Statistics are vital for the Oracle optimizer to create efficient execution plans. Properly gathering, viewing, and maintaining statistics can greatly 
+improve the performance of SQL queries. By using the DBMS_STATS package,
+you can gather detailed and accurate statistics, ensuring that the optimizer has the necessary information to optimize query execution.
+
+Histograms
+=============
+In Oracle, a histogram is a statistical representation of the distribution of data values in a column. 
+Histograms are used by the Oracle optimizer to generate more accurate cardinality estimates, which in turn helps the optimizer choose the most efficient execution plans for SQL queries.
+
+Types of Histograms
+Oracle supports several types of histograms:
+
+Height-Balanced Histogram: Divides the column values into bands such that each band contains approximately the same number of rows.
+Frequency Histogram: Stores the exact frequencies of column values. This type is used for columns with relatively few distinct values.
+Top-Frequency Histogram: A variation of the frequency histogram that stores the most frequent values.
+Hybrid Histogram: Combines characteristics of both height-balanced and frequency histograms, providing better estimates for columns with data skew.
+Viewing Histograms in USER_TAB_COLUMNS
+The USER_TAB_COLUMNS view provides information about columns, including whether histograms exist for them and their type.
+
+Relevant Columns in USER_TAB_COLUMNS
+TABLE_NAME: The name of the table.
+COLUMN_NAME: The name of the column.
+NUM_DISTINCT: The number of distinct values in the column.
+DENSITY: The selectivity of the column (the inverse of the number of distinct values).
+NUM_NULLS: The number of null values in the column.
+HISTOGRAM: The type of histogram (NONE, HEIGHT BALANCED, FREQUENCY, TOP-FREQUENCY, or HYBRID).
+
+
