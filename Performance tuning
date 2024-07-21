@@ -80,3 +80,22 @@ ALTER INDEX index_name NOMONITORING USAGE;
 ### Conclusion
 Indexes are essential tools in Oracle databases for improving query performance. By understanding the different types of indexes and 
 their appropriate use cases, you can design efficient databases that provide quick and responsive data access.
+
+Index organized Tables
+========================
+
+Create table emplyees_iot (
+employee_id number(6,0) constraint pk_emp_id primary key,
+first_name varchar2(20),
+department_id number(4))
+organization index 
+including DEPARTMENT_ID overflow;
+
+Disadvantages
+=============
+1. You must have a primary key on the table with a unique value
+2. you can not have any other indexes on the data
+3. You can not partition an index-organized table.
+4. An index-organized table cannnot be a part of a cluster
+5. The data in the row must be fairly small.  Large amounts of data in the leaf nodes will require more I/O's to retrieve it.
+6. An IOT cannot contain a column of LONG data type.
