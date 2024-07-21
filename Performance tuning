@@ -1,3 +1,239 @@
+In Oracle, you can check for locking issues (i.e., locks that might be causing contention or blocking other operations) 
+using several different methods. Here are some of the most common approaches:
+### 1. Using `V$LOCK` and `V$SESSION` Views
+These dynamic performance views provide information about locks and sessions.
+#### Example Query
+SELECT
+    s.username,
+    s.sid,
+    s.serial#,
+    s.blocking_session,
+    s.osuser,
+    s.machine,
+    l.type,
+    l.lmode,
+    l.request,
+    l.id1,
+    l.id2
+FROM
+    v$lock l,
+    v$session s
+WHERE
+    s.sid = l.sid
+ORDER BY
+    s.username, l.type;
+
+### 2. Using `DBA_BLOCKERS` and `DBA_WAITERS`
+
+These views provide information about sessions that are currently blocking others and sessions that are waiting to acquire a lock.
+
+#### Example Query
+SELECT
+    bw.username AS waiting_user,
+    bw.sid AS waiting_sid,
+    bw.serial# AS waiting_serial,
+    bw.blocker AS blocking_sid
+FROM
+    dba_waiters bw
+ORDER BY
+    bw.waiting_user;
+
+### 3. Using `DBA_LOCK` and `DBA_LOCK_INTERNAL`
+
+These views provide a comprehensive list of locks in the database.
+
+#### Example Query
+
+SELECT
+    l.lock_type,
+    l.mode_held,
+    l.mode_requested,
+    l.lock_id1,
+    l.lock_id2,
+    s.username,
+    s.sid,
+    s.serial#
+FROM
+    dba_locks l,
+    v$session s
+WHERE
+    l.session_id = s.sid;
+
+### 4. Using Oracle Enterprise Manager (OEM)
+
+Oracle Enterprise Manager provides a graphical interface to monitor and manage locks.
+
+1. **Login to OEM:**
+   - Navigate to the Performance tab.
+
+2. **Locks and Blocking Sessions:**
+   - Go to the Blocking Sessions section to see a graphical representation of current locks and blockers.
+
+### 5. Using PL/SQL to Detect Blocking Locks
+
+You can write a PL/SQL script to detect and display blocking locks.
+
+#### Example PL/SQL Script
+
+```sql
+SET SERVEROUTPUT ON
+BEGIN
+    FOR rec IN (
+        SELECT
+            s1.username AS blocker,
+            s1.sid AS blocker_sid,
+            s2.username AS waiter,
+            s2.sid AS waiter_sid,
+            s2.lockwait AS lockwait
+        FROM
+            v$session s1,
+            v$session s2
+        WHERE
+            s1.sid = s2.blocking_session
+    )
+    LOOP
+        DBMS_OUTPUT.PUT_LINE('Blocker: ' || rec.blocker || ' (SID=' || rec.blocker_sid || ')');
+        DBMS_OUTPUT.PUT_LINE('Waiter : ' || rec.waiter || ' (SID=' || rec.waiter_sid || ')');
+        DBMS_OUTPUT.PUT_LINE('----------------------------------------');
+    END LOOP;
+END;
+/
+```
+
+### 6. Using AWR and ASH Reports
+
+Oracle's Automatic Workload Repository (AWR) and Active Session History (ASH) reports can also help identify locking issues over a period of time.
+
+1. **Generate AWR Report:**
+
+   ```sql
+   @$ORACLE_HOME/rdbms/admin/awrrpt.sql
+   ```
+
+2. **Generate ASH Report:**
+
+   ```sql
+   @$ORACLE_HOME/rdbms/admin/ashrpt.sql
+   ```
+
+3. **Analyze the Reports:**
+   - Look for sections that show wait events related to locks, such as "enq: TX - row lock contention".
+
+### Conclusion
+
+By using these methods, you can effectively monitor and diagnose locking issues in an Oracle database. The choice of method depends on your specific needs and the tools available in your environment. For real-time issues, using dynamic views like `V$LOCK` and `V$SESSION` is very effective, while for historical analysis, AWR and ASH reports are invaluable.
+
+
+To identify which query is taking a long time within an Oracle procedure, you can use several methods and tools. 
+Here are some effective approaches:
+
+### 1. Use `DBMS_OUTPUT.PUT_LINE` for Manual Timing
+Add timing and logging to your procedure to identify slow queries.
+#### Example:
+CREATE OR REPLACE PROCEDURE my_procedure IS
+  v_start_time TIMESTAMP;
+  v_end_time   TIMESTAMP;
+BEGIN
+  v_start_time := SYSTIMESTAMP;
+  -- Query 1
+  EXECUTE IMMEDIATE 'SELECT * FROM large_table';
+  v_end_time := SYSTIMESTAMP;
+  DBMS_OUTPUT.PUT_LINE('Query 1 execution time: ' || (v_end_time - v_start_time));
+
+  v_start_time := SYSTIMESTAMP;
+  -- Query 2
+  EXECUTE IMMEDIATE 'SELECT * FROM another_large_table';
+  v_end_time := SYSTIMESTAMP;
+  DBMS_OUTPUT.PUT_LINE('Query 2 execution time: ' || (v_end_time - v_start_time));
+END;
+/
+
+### 2. Use Oracle SQL Trace and TKPROF
+Enable SQL Trace for the session running the procedure, and then use TKPROF to analyze the trace file.
+
+#### Steps:
+
+1. **Enable SQL Trace:**
+   ALTER SESSION SET sql_trace = TRUE;
+
+2. **Run the Procedure:**
+   EXEC my_procedure;
+
+3. **Disable SQL Trace:**
+   ALTER SESSION SET sql_trace = FALSE;
+
+4. **Locate the Trace File:**
+   - Trace files are typically found in the `USER_DUMP_DEST` directory.
+
+5. **Run TKPROF:**
+   tkprof tracefile.trc outputfile.prf
+
+### 3. Use Oracle Enterprise Manager (OEM)
+
+Oracle Enterprise Manager provides a graphical interface to monitor the performance of SQL statements and procedures.
+1. **Login to OEM:**
+   - Navigate to the Performance tab.
+
+2. **Identify Slow Queries:**
+   - Use the SQL Monitoring or SQL Details sections to find long-running queries.
+
+### 4. Use `DBMS_SQLTUNE` Package
+
+The `DBMS_SQLTUNE` package can be used to create a SQL tuning task and generate a report.
+
+#### Example:
+
+DECLARE
+  l_sql_tune_task_id VARCHAR2(100);
+BEGIN
+  l_sql_tune_task_id := DBMS_SQLTUNE.create_tuning_task(
+                          sql_id => 'Your SQL ID here',
+                          scope => 'COMPREHENSIVE',
+                          time_limit => 60,
+                          task_name => 'my_sql_tuning_task',
+                          description => 'Tuning task for slow query');
+  DBMS_SQLTUNE.execute_tuning_task(task_name => 'my_sql_tuning_task');
+  DBMS_OUTPUT.put_line('Tuning task created: ' || l_sql_tune_task_id);
+END;
+/
+
+-- To get the report
+SET LONG 10000
+SELECT DBMS_SQLTUNE.report_tuning_task('my_sql_tuning_task') FROM dual;
+
+### 5. Use Oracle Automatic Workload Repository (AWR)
+
+Generate an AWR report to identify slow queries.
+#### Steps:
+
+1. **Generate AWR Report:**
+   -- First, find the snapshot IDs you want to compare
+   SELECT SNAP_ID, BEGIN_INTERVAL_TIME, END_INTERVAL_TIME
+   FROM DBA_HIST_SNAPSHOT
+   ORDER BY SNAP_ID DESC;
+
+   -- Generate the AWR report between the desired snapshots
+   @$ORACLE_HOME/rdbms/admin/awrrpt.sql
+2. **Analyze the AWR Report:**
+   - Look for SQL statements with high execution times.
+
+### 6. Use Oracle Active Session History (ASH)
+Generate an ASH report to identify slow queries.
+
+#### Steps:
+
+1. **Generate ASH Report:**
+   @$ORACLE_HOME/rdbms/admin/ashrpt.sql
+
+2. **Analyze the ASH Report:**
+   - Look for SQL statements that are consuming significant resources.
+
+### Conclusion
+
+Using these methods, you can effectively identify long-running queries within an Oracle procedure. 
+The choice of method depends on your environment and the tools available to you. For comprehensive analysis, combining multiple methods often yields the best results.
+
+
 B-Tree Index
 
 In Oracle, an index is a database object that improves the performance of data retrieval operations by providing faster access to rows in a 
