@@ -1,0 +1,143 @@
+Normalization is a process in database design to organize the fields and tables of a relational database to minimize redundancy and dependency. It involves decomposing a table into less redundant (and smaller) tables without losing information and defining relationships between the tables. The main objectives are to reduce data redundancy and improve data integrity. The process follows several normal forms, each with specific requirements.
+
+### Normal Forms
+
+Here are the commonly used normal forms in normalization:
+
+#### 1. First Normal Form (1NF)
+- **Rule**: Ensure that the table has no repeating groups and each cell contains only atomic (indivisible) values.
+- **Objective**: Eliminate duplicate columns and create separate tables for related data.
+- **Example**:
+  - Not in 1NF:
+    ```
+    | StudentID | Name       | Courses          |
+    |-----------|------------|------------------|
+    | 1         | Alice      | Math, Science    |
+    | 2         | Bob        | English, History |
+    ```
+  - In 1NF:
+    ```
+    | StudentID | Name  | Course   |
+    |-----------|-------|----------|
+    | 1         | Alice | Math     |
+    | 1         | Alice | Science  |
+    | 2         | Bob   | English  |
+    | 2         | Bob   | History  |
+    ```
+
+#### 2. Second Normal Form (2NF)
+- **Rule**: Ensure that the table is in 1NF and all non-key attributes are fully functional dependent on the primary key.
+- **Objective**: Eliminate partial dependency (no non-prime attribute should be dependent on any part of a candidate key).
+- **Example**:
+  - Not in 2NF:
+    ```
+    | StudentID | CourseID | StudentName | CourseName |
+    |-----------|----------|-------------|------------|
+    | 1         | 101      | Alice       | Math       |
+    | 2         | 102      | Bob         | English    |
+    ```
+  - In 2NF:
+    ```
+    | StudentID | StudentName |
+    |-----------|-------------|
+    | 1         | Alice       |
+    | 2         | Bob         |
+
+    | CourseID | CourseName |
+    |----------|------------|
+    | 101      | Math       |
+    | 102      | English    |
+
+    | StudentID | CourseID |
+    |-----------|----------|
+    | 1         | 101      |
+    | 2         | 102      |
+    ```
+
+#### 3. Third Normal Form (3NF)
+- **Rule**: Ensure that the table is in 2NF and all attributes are only dependent on the primary key.
+- **Objective**: Eliminate transitive dependency (no non-prime attribute should be dependent on another non-prime attribute).
+- **Example**:
+  - Not in 3NF:
+    ```
+    | StudentID | StudentName | DepartmentID | DepartmentName |
+    |-----------|-------------|--------------|----------------|
+    | 1         | Alice       | D1           | Science        |
+    | 2         | Bob         | D2           | Arts           |
+    ```
+  - In 3NF:
+    ```
+    | StudentID | StudentName | DepartmentID |
+    |-----------|-------------|--------------|
+    | 1         | Alice       | D1           |
+    | 2         | Bob         | D2           |
+
+    | DepartmentID | DepartmentName |
+    |--------------|----------------|
+    | D1           | Science        |
+    | D2           | Arts           |
+    ```
+
+### Higher Normal Forms
+
+#### 4. Boyce-Codd Normal Form (BCNF)
+- **Rule**: Ensure that the table is in 3NF and every determinant is a candidate key.
+- **Objective**: Further reduce redundancy and eliminate anomalies.
+- **Example**:
+  - Not in BCNF:
+    ```
+    | CourseID | Instructor | Room    |
+    |----------|-------------|---------|
+    | 101      | Prof. A     | Room 1  |
+    | 102      | Prof. B     | Room 2  |
+    ```
+  - In BCNF:
+    ```
+    | CourseID | InstructorID |
+    |----------|--------------|
+    | 101      | 1            |
+    | 102      | 2            |
+
+    | InstructorID | Instructor | RoomID |
+    |--------------|------------|--------|
+    | 1            | Prof. A    | 1      |
+    | 2            | Prof. B    | 2      |
+
+    | RoomID | Room   |
+    |--------|--------|
+    | 1      | Room 1 |
+    | 2      | Room 2 |
+    ```
+
+#### 5. Fourth Normal Form (4NF)
+- **Rule**: Ensure that the table is in BCNF and has no multi-valued dependencies.
+- **Objective**: Eliminate any non-trivial multi-valued dependencies.
+- **Example**:
+  - Not in 4NF:
+    ```
+    | CourseID | Instructor | Book        |
+    |----------|------------|-------------|
+    | 101      | Prof. A    | Book 1      |
+    | 101      | Prof. A    | Book 2      |
+    ```
+  - In 4NF:
+    ```
+    | CourseID | InstructorID |
+    |----------|--------------|
+    | 101      | 1            |
+    | 102      | 2            |
+
+    | InstructorID | Instructor |
+    |--------------|------------|
+    | 1            | Prof. A    |
+    | 2            | Prof. B    |
+
+    | CourseID | Book   |
+    |----------|--------|
+    | 101      | Book 1 |
+    | 101      | Book 2 |
+    ```
+
+### Summary
+
+Normalization helps in organizing data efficiently, reducing redundancy, and ensuring data integrity by adhering to various normal forms. Each subsequent normal form addresses a specific type of redundancy or anomaly, thus improving the overall structure and quality of the database design.
