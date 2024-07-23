@@ -368,3 +368,97 @@ Long running query
 
 
 
+Identifying stale or outdated tables in an Oracle database typically involves determining which tables haven't been accessed or modified for a significant period. This can help in database maintenance, optimization, and ensuring efficient use of resources.
+
+Here are the steps and methods to identify stale tables:
+
+### 1. **Using Data Dictionary Views**
+
+Oracle provides several data dictionary views that can be helpful:
+
+- **DBA_TAB_MODIFICATIONS**: Contains information about the DML (INSERT, UPDATE, DELETE) activity on tables.
+- **DBA_OBJECTS**: Provides information about all objects in the database, including their last DDL (Data Definition Language) time.
+- **DBA_TAB_STATISTICS**: Contains statistics for tables, including the last time statistics were gathered.
+
+#### Example Queries
+
+1. **Identify Tables with No Recent Modifications**
+   ```sql
+   SELECT table_name, owner, last_analyzed
+   FROM dba_tab_statistics
+   WHERE last_analyzed < SYSDATE - 365;  -- Tables not analyzed in the last year
+   ```
+
+2. **Check DML Activity**
+   ```sql
+   SELECT table_name, inserts, updates, deletes, timestamp
+   FROM dba_tab_modifications
+   WHERE timestamp < SYSDATE - 365;  -- Tables with no DML activity in the last year
+   ```
+
+3. **Identify Tables with No Recent DDL Changes**
+   ```sql
+   SELECT object_name, object_type, last_ddl_time
+   FROM dba_objects
+   WHERE object_type = 'TABLE'
+     AND last_ddl_time < SYSDATE - 365;  -- Tables with no DDL changes in the last year
+   ```
+
+### 2. **Using Oracle AWR and ASH Reports**
+
+Oracle Automatic Workload Repository (AWR) and Active Session History (ASH) reports can help identify tables that are rarely accessed. These reports provide detailed performance statistics.
+
+1. **Generate AWR Reports**
+   ```sql
+   -- AWR report generation script
+   @$ORACLE_HOME/rdbms/admin/awrrpt.sql
+   ```
+   Review the generated AWR report to identify tables with low or no activity.
+
+2. **Analyze ASH Data**
+   ```sql
+   SELECT object_name, COUNT(*)
+   FROM dba_hist_active_sess_history ash
+   JOIN dba_objects obj ON ash.current_obj# = obj.object_id
+   WHERE obj.object_type = 'TABLE'
+     AND ash.sample_time > SYSDATE - 365  -- Change to desired period
+   GROUP BY object_name
+   ORDER BY 2;
+   ```
+
+### 3. **Using Custom Scripts**
+
+You can write custom scripts to automate the identification of stale tables based on your specific criteria. For example:
+
+```sql
+BEGIN
+   FOR rec IN (SELECT table_name
+               FROM dba_tables
+               WHERE owner = 'YOUR_SCHEMA') LOOP
+       EXECUTE IMMEDIATE 'ANALYZE TABLE ' || rec.table_name || ' COMPUTE STATISTICS';
+   END LOOP;
+END;
+/
+```
+
+After gathering statistics, use the following query to identify stale tables:
+
+```sql
+SELECT table_name, num_rows, last_analyzed
+FROM dba_tables
+WHERE last_analyzed < SYSDATE - 365
+  AND owner = 'YOUR_SCHEMA';
+```
+
+### 4. **Using Oracle Enterprise Manager**
+
+Oracle Enterprise Manager (OEM) provides a graphical interface to monitor and manage database activities, including identifying stale tables.
+
+1. **Access Oracle Enterprise Manager**
+2. **Navigate to Performance -> SQL Monitoring**
+3. **Review Access Patterns and Activity Levels**
+4. **Generate Reports on Inactive Tables**
+
+### Summary
+
+Identifying stale tables involves reviewing table modification times, access patterns, and activity levels. Using a combination of data dictionary views, AWR and ASH reports, custom scripts, and tools like Oracle Enterprise Manager can help effectively manage and optimize database resources by identifying and handling stale tables.
