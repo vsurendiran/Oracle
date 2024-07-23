@@ -62,3 +62,94 @@ Monitoring Tools
 For a more user-friendly interface and additional functionalities, you can also use Oracle Enterprise Manager (OEM) or third-party 
 tools like TOAD or SQL Developer. These tools often provide graphical interfaces for monitoring sessions and queries, 
 making it easier to manage and troubleshoot performance issues in a production environment.
+
+To check for long-running queries in an Oracle database using a Unix shell script, you can create a script that connects to the database, executes a SQL query to find long-running queries, and outputs the results. Here’s an example of how you can achieve this:
+
+Prerequisites
+You should have sqlplus installed and configured to connect to your Oracle database.
+Ensure that your Unix user has the necessary permissions to execute SQL queries on the database.
+Example Unix Script
+Create a file named check_long_running_queries.sh and add the following content:
+
+sh
+Copy code
+#!/bin/bash
+
+# Database connection details
+DB_USER="your_db_user"
+DB_PASSWORD="your_db_password"
+DB_SID="your_db_sid"
+DB_HOST="your_db_host"
+DB_PORT="your_db_port"
+
+# Threshold in seconds (e.g., 3600 seconds = 1 hour)
+THRESHOLD=3600
+
+# SQL query to find long-running queries
+SQL_QUERY="
+SET PAGESIZE 500
+SET LINESIZE 200
+COLUMN username FORMAT A15
+COLUMN sql_id FORMAT A15
+COLUMN status FORMAT A10
+COLUMN machine FORMAT A20
+COLUMN program FORMAT A30
+COLUMN elapsed_seconds FORMAT 9999999
+
+SELECT 
+    s.sid,
+    s.serial#,
+    s.username,
+    s.status,
+    s.osuser,
+    s.machine,
+    s.program,
+    q.sql_id,
+    q.sql_text,
+    ROUND((q.elapsed_time / 1000000), 2) AS elapsed_seconds
+FROM 
+    v\$session s
+JOIN 
+    v\$sql q ON s.sql_id = q.sql_id
+WHERE 
+    s.status = 'ACTIVE'
+    AND s.username IS NOT NULL
+    AND (q.elapsed_time / 1000000) > $THRESHOLD
+ORDER BY 
+    q.elapsed_time DESC;
+"
+
+# Execute the SQL query
+sqlplus -s $DB_USER/$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_SID <<EOF
+$SQL_QUERY
+EXIT;
+EOF
+Explanation
+Database connection details: Replace your_db_user, your_db_password, your_db_sid, your_db_host, and your_db_port with your actual database connection details.
+Threshold: The threshold is set to 3600 seconds (1 hour). You can adjust this value as needed.
+SQL query: This query retrieves information about long-running queries that have been running longer than the specified threshold. It joins the v$session and v$sql views to get details about the active sessions and their corresponding SQL statements.
+Making the Script Executable
+After creating the script, make it executable:
+
+sh
+Copy code
+chmod +x check_long_running_queries.sh
+Running the Script
+You can run the script using the following command:
+
+sh
+Copy code
+./check_long_running_queries.sh
+This script will connect to the Oracle database, execute the SQL query, and display the details of long-running queries. You can also schedule this script to run at regular intervals using cron to automate the monitoring process.
+
+Additional Improvements
+Logging: You can add logging to the script to record the output to a file.
+Email Alerts: Integrate email alerts to notify you when long-running queries are detected.
+Error Handling: Add error handling to manage database connection issues and other potential errors.
+By customizing and extending this script, you can create a robust solution for monitoring long-running queries in your Oracle database from a Unix environment.
+
+
+
+
+
+
