@@ -1,7 +1,12 @@
-1. Log into prd session currently running
+1. Log into prd session to check what is currently running
 2. checking lock, long running queries, procedures
-3. health check
-4.blocking session
+3. health check:
+Health Check: A comprehensive assessment of the database system to ensure its optimal performance and integrity.
+Tools and Methods: AWR, ADDM, Data Dictionary Views, Enterprise Manager, Health Monitor, Data Recovery Advisor, and custom SQL queries.
+Best Practices: Regularly run health checks, monitor key performance indicators, use automation tools for continuous assessment, 
+and address identified issues promptly to maintain database health and performance.
+
+4. blocking session
 
 In production to check the currently running session
 ====================================================
@@ -149,7 +154,217 @@ Error Handling: Add error handling to manage database connection issues and othe
 By customizing and extending this script, you can create a robust solution for monitoring long-running queries in your Oracle database from a Unix environment.
 
 
+=================================================
+To create a Unix script that identifies and kills long-running sessions in an Oracle database, you need to connect to the database, identify the long-running sessions, and then issue commands to kill those sessions. Be cautious with this approach, as killing sessions can disrupt user activities and should be done with proper authorization and understanding of the impact.
 
+### Prerequisites
+
+- Ensure `sqlplus` is installed and configured to connect to your Oracle database.
+- Ensure the Unix user has the necessary permissions to execute SQL queries and kill sessions on the database.
+
+### Example Unix Script
+
+Create a file named `kill_long_running_sessions.sh` and add the following content:
+
+```sh
+#!/bin/bash
+
+# Database connection details
+DB_USER="your_db_user"
+DB_PASSWORD="your_db_password"
+DB_SID="your_db_sid"
+DB_HOST="your_db_host"
+DB_PORT="your_db_port"
+
+# Threshold in seconds (e.g., 3600 seconds = 1 hour)
+THRESHOLD=3600
+
+# SQL query to find long-running sessions
+SQL_QUERY="
+SET PAGESIZE 500
+SET LINESIZE 200
+COLUMN sid FORMAT 999999
+COLUMN serial# FORMAT 999999
+
+SELECT 
+    s.sid,
+    s.serial#
+FROM 
+    v\$session s
+JOIN 
+    v\$sql q ON s.sql_id = q.sql_id
+WHERE 
+    s.status = 'ACTIVE'
+    AND s.username IS NOT NULL
+    AND (q.elapsed_time / 1000000) > $THRESHOLD;
+"
+
+# Function to kill a session
+kill_session() {
+    local sid=$1
+    local serial=$2
+    echo "Killing session SID=$sid, SERIAL#=$serial"
+    sqlplus -s $DB_USER/$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_SID <<EOF
+ALTER SYSTEM KILL SESSION '$sid,$serial' IMMEDIATE;
+EXIT;
+EOF
+}
+
+# Execute the SQL query to find long-running sessions and kill them
+sessions=$(sqlplus -s $DB_USER/$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_SID <<EOF
+SET HEADING OFF
+SET FEEDBACK OFF
+$SQL_QUERY
+EXIT;
+EOF
+)
+
+# Loop through the sessions and kill each one
+while read -r line; do
+    sid=$(echo $line | awk '{print $1}')
+    serial=$(echo $line | awk '{print $2}')
+    if [ -n "$sid" ] && [ -n "$serial" ]; then
+        kill_session $sid $serial
+    fi
+done <<< "$sessions"
+```
+
+### Explanation
+
+- **Database connection details**: Replace `your_db_user`, `your_db_password`, `your_db_sid`, `your_db_host`, and `your_db_port` with your actual database connection details.
+- **Threshold**: The threshold is set to 3600 seconds (1 hour). Adjust this value as needed.
+- **SQL query**: This query retrieves the `SID` and `SERIAL#` of active sessions that have been running longer than the specified threshold.
+- **`kill_session` function**: This function takes a `SID` and `SERIAL#` as arguments and issues the `ALTER SYSTEM KILL SESSION` command to terminate the session.
+
+### Making the Script Executable
+
+After creating the script, make it executable:
+
+```sh
+chmod +x kill_long_running_sessions.sh
+```
+
+### Running the Script
+
+You can run the script using the following command:
+
+```sh
+./kill_long_running_sessions.sh
+```
+
+### Additional Improvements
+
+- **Logging**: Add logging to record which sessions were killed.
+- **Email Alerts**: Integrate email alerts to notify you when sessions are killed.
+- **Error Handling**: Add error handling to manage database connection issues and other potential errors.
+- **Safety Checks**: Implement safety checks to avoid killing critical sessions unintentionally.
+
+By customizing and extending this script, you can create a robust solution for managing long-running sessions in your 
+Oracle database from a Unix environment. Always test scripts in a development environment before applying them to production 
+to ensure they work as expected and do not cause unintended disruptions.
+
+==========================================
+To create a Unix script that identifies locked tables in an Oracle database, you can use `sqlplus` to connect to the database and execute a SQL query that retrieves information about locked tables. Here's a script to achieve this:
+
+### Example Unix Script
+
+Create a file named `check_locked_tables.sh` and add the following content:
+
+```sh
+#!/bin/bash
+
+# Database connection details
+DB_USER="your_db_user"
+DB_PASSWORD="your_db_password"
+DB_SID="your_db_sid"
+DB_HOST="your_db_host"
+DB_PORT="your_db_port"
+
+# SQL query to find locked tables
+SQL_QUERY="
+SET PAGESIZE 500
+SET LINESIZE 200
+COLUMN owner FORMAT A30
+COLUMN object_name FORMAT A30
+COLUMN object_type FORMAT A15
+COLUMN session_id FORMAT 99999
+
+SELECT
+    o.owner,
+    o.object_name,
+    o.object_type,
+    l.session_id
+FROM
+    dba_objects o,
+    v\$locked_object l
+WHERE
+    o.object_id = l.object_id
+ORDER BY
+    o.owner, o.object_name;
+"
+
+# Execute the SQL query
+sqlplus -s $DB_USER/$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_SID <<EOF
+$SQL_QUERY
+EXIT;
+EOF
+```
+
+### Explanation
+
+- **Database connection details**: Replace `your_db_user`, `your_db_password`, `your_db_sid`, `your_db_host`, and `your_db_port` with your actual database connection details.
+- **SQL query**: This query joins `dba_objects` and `v$locked_object` to retrieve information about locked tables.
+  - `dba_objects`: Contains information about database objects.
+  - `v$locked_object`: Contains information about locked objects, including the `object_id` and `session_id`.
+- **Columns**:
+  - `owner`: Owner of the locked object.
+  - `object_name`: Name of the locked object.
+  - `object_type`: Type of the locked object (e.g., TABLE).
+  - `session_id`: Session ID holding the lock.
+
+### Making the Script Executable
+
+After creating the script, make it executable:
+
+```sh
+chmod +x check_locked_tables.sh
+```
+
+### Running the Script
+
+You can run the script using the following command:
+
+```sh
+./check_locked_tables.sh
+```
+
+### Additional Improvements
+
+- **Logging**: You can add logging to the script to record the output to a file.
+- **Email Alerts**: Integrate email alerts to notify you when locked tables are detected.
+- **Error Handling**: Add error handling to manage database connection issues and other potential errors.
+
+By customizing and extending this script, you can create a robust solution for monitoring locked tables in your Oracle database from a Unix environment. Always test scripts in a development environment before applying them to production to ensure they work as expected and do not cause unintended disruptions.
+=========================================
+Long running query
+
+1. What is the count of data last run and today's run
+2. Make sure any code changes happend before this run
+3. Generate AWR report for both the run 
+      SELECT SNAP_ID, BEGIN_INTERVAL_TIME, END_INTERVAL_TIME
+        FROM DBA_HIST_SNAPSHOT
+        ORDER BY SNAP_ID;
+   To check the 
+    1.CPU load
+    2.number of session
+    3.locking session
+4. sql$text to check the xplain plan
+    indexes and corresponding tables to make sure the index is required or not 
+5. Stale data/gather statistic on Table and Index
+6. Fragmentation/data modification
+7. We have to make sure the plan is correct or taking wrong plan.
+    If the plan in wrong we have to fulsh the memort
+8. Still not improved 
 
 
 
