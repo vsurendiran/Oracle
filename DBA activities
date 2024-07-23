@@ -1,0 +1,64 @@
+1. Log into prd session currently running
+2. checking lock, long running queries, procedures
+3. health check
+4.blocking session
+
+In production to check the currently running session
+====================================================
+SELECT 
+    s.sid,
+    s.serial#,
+    s.username,
+    s.status,
+    s.osuser,
+    s.machine,
+    s.program,
+    s.module,
+    s.action,
+    q.sql_id,
+    q.sql_text,
+    q.start_time,
+    q.elapsed_time,
+    q.cpu_time
+FROM 
+    v$session s
+JOIN 
+    v$sql q ON s.sql_id = q.sql_id
+WHERE 
+    s.status = 'ACTIVE'
+    AND s.username IS NOT NULL
+ORDER BY 
+    s.sid;
+
+Explanation:
+============
+v$session: This view contains information about current user sessions.
+sid: Session identifier.
+serial#: Session serial number, useful for uniquely identifying a session.
+username: Username of the session.
+status: Status of the session (ACTIVE, INACTIVE, etc.).
+osuser: Operating system user name.
+machine: Name of the machine where the session is running.
+program: Name of the program used by the session.
+module: Name of the module using the session.
+action: Action currently performed by the session.
+
+v$sql: This view contains information about SQL statements.
+sql_id: SQL identifier.
+sql_text: Text of the SQL statement.
+start_time: Start time of the SQL execution.
+elapsed_time: Total elapsed time of the SQL execution.
+cpu_time: CPU time used by the SQL execution.
+Running the Query
+You can execute the above SQL query in SQL*Plus, SQL Developer, or any other tool that you use to interact with your Oracle database. 
+The query will return information about all active user sessions and the SQL statements they are currently executing.
+
+Additional Considerations
+Permissions: You may need appropriate privileges to access v$session and v$sql. Typically, the SELECT_CATALOG_ROLE or DBA role 
+will have these permissions. Filtering: You can add additional filters to the WHERE clause to narrow down the results based on 
+specific criteria, such as a particular user or program.
+Monitoring Tools
+================
+For a more user-friendly interface and additional functionalities, you can also use Oracle Enterprise Manager (OEM) or third-party 
+tools like TOAD or SQL Developer. These tools often provide graphical interfaces for monitoring sessions and queries, 
+making it easier to manage and troubleshoot performance issues in a production environment.
