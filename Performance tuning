@@ -335,3 +335,13 @@ Disadvantages
 4. An index-organized table cannnot be a part of a cluster
 5. The data in the row must be fairly small.  Large amounts of data in the leaf nodes will require more I/O's to retrieve it.
 6. An IOT cannot contain a column of LONG data type.
+
+Optimizer
+==========
+Optimizer is a built in software that determines the most efficient way to execute a sql statement.
+Optimization is one of the most important step in Query processing, and must be completed for all statements that have a "query component"
+SELECT, UPDATE, DELETE, INSERT/SELECT
+The outcome of optimization step is an execution plan
+
+When a user submits a SQL statment for execution, the optimizer performs the following steps
+=> The o
