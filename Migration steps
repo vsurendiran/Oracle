@@ -1,4 +1,20 @@
-Migrating a database from Oracle 11g to Oracle 19c involves several challenges, mainly due to differences in features, compatibility, and architecture between the two versions. Here are some common challenges and strategies to address them:
+Migrating a database from Oracle 11g to Oracle 19c involves several challenges, mainly due to differences in features, compatibility, and architecture between the two versions. 
+Here are some common challenges and strategies to address them:
+
+Data Mapping : Discuss with Business and decide what are the columns to be needed or not needed
+Data Profiling : Data profiling is the process of examining and analyzing data from an existing source to understand its structure, content, and quality. 
+                  The goal of data profiling is to uncover any issues or inconsistencies within the data and to assess its suitability for the intended use. 
+                  This process is critical in various data-related projects, such as data migration, data integration, data warehousing, and data quality management.
+Data Transformation
+Data Reconcilation : Make sure all data moved to Target
+Big Bang vs Tricke Migration
+Big Bang => One time everything
+Tricke => Partial data migration based on the client requirement
+
+DDL => create, drop, alter, Truncate, Rename, Comment
+DML => Select, Insert, Update, Delete
+TCL => Commit, Rollback, Savepoint
+
 
 ### Common Challenges
 
