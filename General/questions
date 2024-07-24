@@ -5,7 +5,7 @@ SELECT
 FROM 
     dba_segments
 WHERE 
-    segment_type = 'EMP'
+    segment_type = 'TABLE'
     AND segment_name = 'YOUR_TABLE_NAME';
 
 
