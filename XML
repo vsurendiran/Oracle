@@ -1,0 +1,84 @@
+When to Use XMLType
+Use XMLType when you need to perform the following:
+
+1. SQL queries on part of or the whole XML document: The functions existsNode() and extract() provide the necessary SQL query functions over XML documents.
+2. Strong typing inside SQL statements and PL/SQL functions: Strong typing implies that you ensure that the values passed in are XML values and not any arbitrary text string.
+3. XPath functionality provided by extract() and existsNode() functions: Note that XMLType uses the built-in C XML parser and processor and hence provides better performance 
+   and scalability when used inside the server.
+4. Indexing on XPath searches on documents: XMLType has member functions that you can use to create function-based indexes to optimize searches.
+5. To shield applications from storage models. Using XMLType instead of CLOBs or relational storage allows applications to gracefully move to various storage alternatives later 
+   without affecting any of the query or DML statements in the application.
+6. To prepare for future optimizations. New XML functionality will support XMLType. Since Oracle9i database is natively aware that XMLType can store XML data, better optimizations 
+   and indexing techniques can be done. By writing applications to use XMLType, these optimizations and enhancements can be easily achieved and preserved in future releases without 
+  your needing to rewrite applications.
+
+When to Use CLOB Storage for XMLType
+Use CLOB storage for XMLType in the following cases:
+
+You need to store XML as a whole document in the database and retrieve it as a whole document.
+You do not need to perform piece-wise updates on XML documents.
+
+Note:
+XMLType and Varray:
+
+You cannot create VARRAYs of XMLType and store them in the database since VARRAYs do not support CLOBs when stored in tables.
+You cannot create columns of VARRAY types that contain XMLType. This is because Oracle does not support LOB locators inside VARRAYs.
+
+
+drop table warehouses;
+
+CREATE TABLE warehouses(
+  warehouse_id NUMBER(3),
+  warehouse_spec XMLTYPE,
+  warehouse_name VARCHAR2(35),
+  location_id NUMBER(4));
+  
+INSERT INTO warehouses VALUES 
+   (       100, XMLType(
+              '<Warehouse whNo="100"> 
+               <Building>Owned</Building>
+               </Warehouse>'), 'Tower Records', 1003);
+               
+SELECT w.warehouse_spec.extract('/Warehouse/Building/text()').getStringVal() "Building"
+  FROM warehouses w;     
+
+select * FROM warehouses w;  
+
+DELETE FROM warehouses e WHERE e.warehouse_spec.extract('//Building2/text()').getStringVal() = 'Owned';
+
+====================================================
+CREATE TABLE po_clob_tab 
+( 
+  poid number,
+  poClob CLOB
+);
+
+-- some value is present in the po_clob_tab
+INSERT INTO po_clob_tab 
+     VALUES(100, '<?xml version="1.0"?>
+                    <PO pono="1">
+                       <PNAME>Po_1</PNAME>
+                       <CUSTNAME>John</CUSTNAME>
+                       <SHIPADDR>
+                          <STREET>1033, Main Street</STREET>
+                          <CITY>Sunnyvalue</CITY>
+                          <STATE>CA</STATE>
+                       </SHIPADDR>
+                    </PO>');
+
+drop table po_xml_tab;
+
+CREATE TABLE po_xml_tab 
+( 
+  poid number,
+  poClob xmltype
+);
+
+INSERT INTO po_xml_tab 
+       SELECT poid, XMLType(poClob)
+       FROM po_clob_tab;
+
+
+SELECT  e.poClob.getClobval() AS poXML
+   FROM po_xml_tab e
+===================================================================================
