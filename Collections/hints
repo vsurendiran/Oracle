@@ -1,0 +1,108 @@
+Oracle SQL hints are directives to the Oracle optimizer to influence the execution plan for a query. Hints can improve performance by guiding the optimizer to use specific indexes, join methods, or parallel execution. Here are some common Oracle hints with examples:
+
+### 1. FULL Hint
+The `FULL` hint tells the optimizer to perform a full table scan on the specified table.
+
+SELECT /*+ FULL(emp) */ *
+FROM emp;
+
+### 2. INDEX Hint
+The `INDEX` hint tells the optimizer to use a specific index for the query.
+SELECT /*+ INDEX(emp emp_index) */ *
+FROM emp
+WHERE emp_id = 1;
+
+### 3. USE_NL Hint
+The `USE_NL` hint instructs the optimizer to use a nested loops join.
+
+```sql
+SELECT /*+ USE_NL(emp dept) */ *
+FROM emp
+JOIN dept ON emp.dept_id = dept.dept_id;
+```
+
+### 4. LEADING Hint
+The `LEADING` hint specifies the leading table in a join operation.
+
+```sql
+SELECT /*+ LEADING(emp) */ *
+FROM emp
+JOIN dept ON emp.dept_id = dept.dept_id;
+```
+
+### 5. FIRST_ROWS Hint
+The `FIRST_ROWS` hint instructs the optimizer to optimize for the first rows returned by the query.
+
+```sql
+SELECT /*+ FIRST_ROWS(10) */ *
+FROM emp
+ORDER BY emp_name;
+```
+
+### 6. PARALLEL Hint
+The `PARALLEL` hint tells the optimizer to use parallel execution for the query.
+
+```sql
+SELECT /*+ PARALLEL(emp, 4) */ *
+FROM emp;
+```
+
+### 7. NO_MERGE Hint
+The `NO_MERGE` hint prevents the optimizer from merging a view or a subquery into the outer query.
+
+```sql
+SELECT /*+ NO_MERGE */ *
+FROM (SELECT * FROM emp)
+WHERE emp_salary > 50000;
+```
+
+### 8. USE_HASH Hint
+The `USE_HASH` hint instructs the optimizer to use a hash join.
+
+```sql
+SELECT /*+ USE_HASH(emp dept) */ *
+FROM emp
+JOIN dept ON emp.dept_id = dept.dept_id;
+```
+
+### 9. ORDERED Hint
+The `ORDERED` hint forces the join order to follow the sequence of tables in the FROM clause.
+
+```sql
+SELECT /*+ ORDERED */ *
+FROM emp
+JOIN dept ON emp.dept_id = dept.dept_id;
+```
+
+### 10. GATHER_PLAN_STATISTICS Hint
+The `GATHER_PLAN_STATISTICS` hint enables the collection of execution statistics for the query.
+
+```sql
+SELECT /*+ GATHER_PLAN_STATISTICS */ *
+FROM emp
+WHERE emp_salary > 50000;
+```
+
+### Example Scenario with Multiple Hints
+
+Assume we have two tables, `emp` and `dept`, and we want to influence the execution plan using multiple hints:
+
+```sql
+SELECT /*+ LEADING(emp) USE_NL(emp dept) INDEX(emp emp_index) FULL(dept) */ 
+       emp.emp_id, emp.emp_name, dept.dept_name
+FROM emp
+JOIN dept ON emp.dept_id = dept.dept_id
+WHERE emp.emp_salary > 50000;
+```
+
+In this query:
+- `LEADING(emp)`: Specifies `emp` as the leading table in the join.
+- `USE_NL(emp dept)`: Uses a nested loops join between `emp` and `dept`.
+- `INDEX(emp emp_index)`: Uses the index `emp_index` on the `emp` table.
+- `FULL(dept)`: Performs a full table scan on the `dept` table.
+
+### Conclusion
+
+Oracle hints can be powerful tools for fine-tuning the performance of SQL queries by guiding the optimizer to use specific strategies. 
+  However, they should be used judiciously, as improper use of hints can degrade performance. 
+  Always test the impact of hints on query performance before applying them in a production environment.
