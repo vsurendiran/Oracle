@@ -1,3 +1,5 @@
+https://www.youtube.com/watch?v=csbNIyAf9XE
+
 drop table dept_json;
 CREATE TABLE dept_json (
     dept_id NUMBER PRIMARY KEY,
