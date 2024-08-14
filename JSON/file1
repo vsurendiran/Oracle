@@ -1,0 +1,24 @@
+CREATE TABLE dept_json (
+    dept_id NUMBER PRIMARY KEY,
+    dept_data CLOB  
+         CONSTRAINT dept_data_must_be_json CHECK (dept_data IS JSON)
+);
+
+
+insert into dept_json (dept_id, dept_data) 
+values (10 ,
+      '{"dept_name": "Admin", "employees":{"emp_id":"200","firstname":"Suren"} }');
+
+
+insert into dept_json (dept_id, dept_data) 
+values (20 ,
+      '{"dept_name": "System", "employees":[{"emp_id":"201","firstname":"Sangeetha"},{"emp_id":"202","firstname":"Veda"}]
+      }');
+      
+
+insert into dept_json (dept_id, dept_data) 
+values (30 ,
+      '{"dept_name": "Account", "employees":[{"emp_id":"203","firstname":"Gokul"},{"emp_id":"204","firstname":"Veera"}]
+      }');
+            
+select * from dept_json;
