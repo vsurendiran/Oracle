@@ -1,7 +1,8 @@
+drop table dept_json;
 CREATE TABLE dept_json (
     dept_id NUMBER PRIMARY KEY,
     dept_data CLOB  
-         CONSTRAINT dept_data_must_be_json CHECK (dept_data IS JSON)
+       CONSTRAINT dept_data_must_be_json CHECK (dept_data IS JSON)
 );
 
 
@@ -20,5 +21,13 @@ insert into dept_json (dept_id, dept_data)
 values (30 ,
       '{"dept_name": "Account", "employees":[{"emp_id":"203","firstname":"Gokul"},{"emp_id":"204","firstname":"Veera"}]
       }');
-            
+
 select * from dept_json;
+
+select d.dept_id,d.dept_data.dept_name, d.dept_data.employees.emp_id, d.dept_data.employees.firstname from dept_json d;
+
+SELECT d.dept_id,
+       json_value(d.dept_data, '$.dept_name') AS "dept_name",
+       json_value(d.dept_data, '$.employees[0].firstname') AS "first name",
+       json_value(d.dept_data, '$.employees[1].firstname') AS "first name"
+FROM dept_json d;
