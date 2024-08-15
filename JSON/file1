@@ -1,4 +1,23 @@
 https://www.youtube.com/watch?v=csbNIyAf9XE
+Converting values to JSON format
+================================
+select  department_id, json_object('First_name' value first_name) from hr.employees;
+select  department_id, json_objectagg('First_name' value first_name) from hr.employees group by department_id;
+select  department_id, json_array('First_name' value first_name) from hr.employees;
+select  department_id, json_arrayagg('First_name' value first_name) from hr.employees group by department_id;
+
+select json_object(d.department_name value json_arrayagg(first_name)) 
+  from hr.employees e, hr.departments d
+ where d.department_id=  e.department_id
+ group by d.department_name;
+
+
+select json_objectagg(d.department_name value json_arrayagg(first_name)) 
+  from hr.employees e, hr.departments d
+ where d.department_id=  e.department_id
+ group by d.department_name;
+
+
 
 drop table dept_json;
 CREATE TABLE dept_json (
@@ -33,3 +52,5 @@ SELECT d.dept_id,
        json_value(d.dept_data, '$.employees[0].firstname') AS "first name",
        json_value(d.dept_data, '$.employees[1].firstname') AS "first name"
 FROM dept_json d;
+
+SELECT JSON_VALUE(jd.de
